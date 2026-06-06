@@ -13,7 +13,6 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 import statsmodels.api as sm
-from scipy import stats
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -421,14 +420,14 @@ with tabs[0]:
         subplot_titles=("PR admissions (monthly)", "Real GDP ($M)",
                         "Unemployment rate (%)", "Hours worked (B/mo)"))
     fig.add_trace(go.Scatter(x=nat_f.YearMonth, y=nat_f.pr_admissions_national, mode="lines",
-                  line=dict(color=MAPLE, width=2), fill="tozeroy",
+                  name="PR admissions", line=dict(color=MAPLE, width=2), fill="tozeroy",
                   fillcolor="rgba(185,28,28,0.08)"), 1, 1)
     fig.add_trace(go.Scatter(x=nat_f.YearMonth, y=nat_f.gdp_real_millions, mode="lines",
-                  line=dict(color=INDIGO, width=2)), 1, 2)
+                  name="Real GDP", line=dict(color=INDIGO, width=2)), 1, 2)
     fig.add_trace(go.Scatter(x=nat_f.YearMonth, y=nat_f.unemployment_rate, mode="lines",
-                  line=dict(color=AMBER, width=2)), 2, 1)
+                  name="Unemployment rate", line=dict(color=AMBER, width=2)), 2, 1)
     fig.add_trace(go.Scatter(x=nat_f.YearMonth, y=nat_f.hours_worked_millions/1e6, mode="lines",
-                  line=dict(color=VIOLET, width=2)), 2, 2)
+                  name="Hours worked", line=dict(color=VIOLET, width=2)), 2, 2)
     for r in (1,2):
         for c in (1,2): covid_shade(fig, row=r, col=c)
     fig.update_layout(**{k:v for k,v in PLOTLY_LAYOUT.items() if k not in ("xaxis","yaxis")},
@@ -729,7 +728,7 @@ partly spurious, which is why the controlled specification is the default for in
             "instrumental variables, or a fixed-effects panel across provinces.")
 
 
-st.markdown(f"""
+st.markdown("""
 <div class="foot">
 🍁 &nbsp;Canada PR Economic Impact Dashboard&nbsp; · &nbsp;Data: IRCC &amp; Statistics Canada&nbsp; · &nbsp;
 2015–2025&nbsp; · &nbsp;OLS with HAC standard errors&nbsp; · &nbsp;
