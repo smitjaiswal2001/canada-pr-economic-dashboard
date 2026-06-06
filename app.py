@@ -157,13 +157,17 @@ div[data-testid="stMetric"] [data-testid="stMetricValue"] {{
 # ═══════════════════════════════════════════════════════════════════════
 #  DATA
 # ═══════════════════════════════════════════════════════════════════════
-BASE = "data"
+from pathlib import Path
 
-@st.cache_data
+# Resolve data relative to THIS file so the app works regardless of the
+# directory it is launched from (critical for Streamlit Cloud / Render).
+BASE = Path(__file__).resolve().parent / "data"
+
+@st.cache_data(show_spinner="Loading data…")
 def load_data():
-    nat  = pd.read_csv(f"{BASE}/processed/master_national_monthly.csv", parse_dates=["YearMonth"])
-    prov = pd.read_csv(f"{BASE}/processed/master_provincial_monthly.csv", parse_dates=["YearMonth"])
-    ircc = pd.read_csv(f"{BASE}/interim/ircc_pr_monthly_by_province_category.csv")
+    nat  = pd.read_csv(BASE / "processed" / "master_national_monthly.csv", parse_dates=["YearMonth"])
+    prov = pd.read_csv(BASE / "processed" / "master_provincial_monthly.csv", parse_dates=["YearMonth"])
+    ircc = pd.read_csv(BASE / "interim" / "ircc_pr_monthly_by_province_category.csv")
 
     nat = nat.sort_values("YearMonth").reset_index(drop=True)
     nat["Year"] = nat["YearMonth"].dt.year
@@ -176,7 +180,19 @@ def load_data():
     ircc["Province"] = ircc["Province_Raw"].str.replace(r"\s*-\s*Total$", "", regex=True).str.strip()
     return nat, prov, ircc
 
-nat, prov, ircc = load_data()
+try:
+    nat, prov, ircc = load_data()
+except FileNotFoundError as e:
+    st.error(
+        "**Data files not found.** Expected CSVs under a `data/` folder next to `app.py`:\n\n"
+        "```\ndata/processed/master_national_monthly.csv\n"
+        "data/processed/master_provincial_monthly.csv\n"
+        "data/interim/ircc_pr_monthly_by_province_category.csv\n```\n\n"
+        "If you deployed to a cloud host, make sure the `data/` folder was committed to the repo."
+    )
+    st.caption(f"Details: {e}")
+    st.stop()
+
 provinces = sorted(prov["Province"].unique())
 all_years = sorted(nat["Year"].unique())
 
@@ -194,9 +210,25 @@ CONTROL_LABELS = {
 }
 
 def run_ols(df, y_col, x_cols, hac_lags=6):
+    """Multivariate OLS with HAC errors. Returns (model, n) or (None, n) if
+    there is not enough usable data to estimate the model."""
     d = df.dropna(subset=[y_col] + x_cols).copy()
-    X = sm.add_constant(d[x_cols])
-    model = sm.OLS(d[y_col], X).fit(cov_type="HAC", cov_kwds={"maxlags": hac_lags})
+
+    # Drop control columns that are constant within this window (e.g. the
+    # COVID dummy is all-zero in a pre-2020 window) — they cause singular
+    # matrices or NaN coefficients. Never drop the primary PR regressor.
+    usable = [x_cols[0]] + [c for c in x_cols[1:] if d[c].nunique() > 1]
+
+    # Need at least a few more observations than parameters to estimate.
+    if len(d) < len(usable) + 3:
+        return None, len(d)
+
+    X = sm.add_constant(d[usable])
+    lags = min(hac_lags, max(1, len(d) // 4))
+    try:
+        model = sm.OLS(d[y_col], X).fit(cov_type="HAC", cov_kwds={"maxlags": lags})
+    except Exception:
+        return None, len(d)
     return model, len(d)
 
 def coef_table(model):
@@ -275,17 +307,24 @@ st.markdown(f"""
 </div>""", unsafe_allow_html=True)
 st.write("")
 
+if nat_f.empty:
+    st.warning("No data in the selected period. Widen the **Analysis Period** in the sidebar.")
+    st.stop()
+
 total_pr   = nat_f["pr_admissions_national"].sum()
 avg_growth = nat_f["gdp_growth_yoy"].mean()
 avg_unemp  = nat_f["unemployment_rate"].mean()
 avg_emp    = nat_f["employment_thousands"].mean()
 peak_month = nat_f.loc[nat_f["pr_admissions_national"].idxmax(), "YearMonth"].strftime("%b %Y")
 
+def _fmt(v, suffix="", scale=1.0, dp=1):
+    return "—" if pd.isna(v) else f"{v/scale:.{dp}f}{suffix}"
+
 k1,k2,k3,k4,k5 = st.columns(5)
-k1.metric("Total PR Admissions", f"{total_pr/1e6:.2f}M")
-k2.metric("Avg GDP Growth (YoY)", f"{avg_growth:.1f}%")
-k3.metric("Avg Unemployment", f"{avg_unemp:.1f}%")
-k4.metric("Avg Employment", f"{avg_emp/1e3:.2f}M")
+k1.metric("Total PR Admissions", _fmt(total_pr, "M", 1e6, 2))
+k2.metric("Avg GDP Growth (YoY)", _fmt(avg_growth, "%"))
+k3.metric("Avg Unemployment", _fmt(avg_unemp, "%"))
+k4.metric("Avg Employment", _fmt(avg_emp, "M", 1e3, 2))
 k5.metric("Peak Intake Month", peak_month)
 
 
@@ -301,6 +340,15 @@ tabs = st.tabs([
 def rq_block(y_col, y_label, y_units, accent, alt_direction="positive",
              monthly_y_transform=None, monthly_label=None):
     model, n = run_ols(nat_f, y_col, x_cols)
+    if model is None:
+        st.warning(
+            f"Not enough data to estimate this model for the selected window "
+            f"({n} usable month{'s' if n != 1 else ''}). "
+            "Widen the **Analysis Period** in the sidebar — year-over-year GDP growth "
+            "needs at least 12 months of prior data, so a window spanning two or more "
+            "years is required."
+        )
+        return
     beta = model.params[pr_var]; p = model.pvalues[pr_var]; r2 = model.rsquared_adj
     sig = p < 0.05; pos = beta > 0
 
@@ -401,6 +449,10 @@ with tabs[0]:
     rows = []
     for tag, lbl, col, direction in rq_defs:
         m, n = run_ols(nat_f, col, x_cols)
+        if m is None:
+            rows.append({"RQ":tag, "Outcome":lbl, "β (PR)":np.nan, "p-value":np.nan,
+                         "Adj. R²":np.nan, "Direction":"—", "Verdict":"Insufficient data"})
+            continue
         b, p, r2 = m.params[pr_var], m.pvalues[pr_var], m.rsquared_adj
         sig = p < 0.05
         if direction == "positive":
@@ -411,13 +463,14 @@ with tabs[0]:
                      "Adj. R²":r2, "Direction":"↑" if b>0 else "↓", "Verdict":verdict})
     sc = pd.DataFrame(rows)
     def color_verdict(v):
+        if "Insufficient" in v: return "background-color:#FEF9C3;color:#854D0E;font-weight:600"
         if "H₁a" in v: return "background-color:#ECFDF5;color:#065F46;font-weight:700"
         if "H₁b" in v: return "background-color:#FFFBEB;color:#92400E;font-weight:700"
         if "supported" in v: return "background-color:#ECFDF5;color:#065F46;font-weight:700"
         if "rejected" in v: return "background-color:#FEF2F2;color:#991B1B;font-weight:700"
         return "background-color:#F1F5F9;color:#334155;font-weight:600"
-    styled = sc.style.format({"β (PR)":"{:+.4g}","p-value":"{:.3f}","Adj. R²":"{:.3f}"}) \
-                     .applymap(color_verdict, subset=["Verdict"]) \
+    styled = sc.style.format({"β (PR)":"{:+.4g}","p-value":"{:.3f}","Adj. R²":"{:.3f}"}, na_rep="—") \
+                     .map(color_verdict, subset=["Verdict"]) \
                      .background_gradient(subset=["p-value"], cmap="RdYlGn_r", vmin=0, vmax=0.2)
     st.dataframe(styled, width='stretch', hide_index=True)
 
@@ -540,18 +593,25 @@ with tabs[5]:
         reg_rows = []
         for pv in provinces:
             sub = prov_f[prov_f.Province==pv].dropna(subset=["pr_admissions","employment_rate"])
-            if len(sub) > 12:
-                X = sm.add_constant(sub[["pr_admissions"]])
-                m = sm.OLS(sub["employment_rate"], X).fit(cov_type="HAC", cov_kwds={"maxlags":6})
+            if len(sub) > 15 and sub["pr_admissions"].nunique() > 1:
+                try:
+                    X = sm.add_constant(sub[["pr_admissions"]])
+                    lags = min(6, max(1, len(sub)//4))
+                    m = sm.OLS(sub["employment_rate"], X).fit(cov_type="HAC", cov_kwds={"maxlags":lags})
+                except Exception:
+                    continue
                 reg_rows.append({"Province":pv, "β (PR)":m.params["pr_admissions"],
                                  "p-value":m.pvalues["pr_admissions"], "Adj. R²":m.rsquared_adj,
                                  "n":int(len(sub)),
                                  "Significant":"Yes" if m.pvalues["pr_admissions"]<0.05 else "No"})
-        rdf = pd.DataFrame(reg_rows).sort_values("β (PR)", ascending=False)
-        styled = rdf.style.format({"β (PR)":"{:+.4g}","p-value":"{:.3f}","Adj. R²":"{:.3f}"}) \
-                          .background_gradient(subset=["p-value"], cmap="RdYlGn_r", vmin=0, vmax=0.2)
-        st.dataframe(styled, width='stretch', hide_index=True)
-        st.caption("Bivariate OLS per province, HAC standard errors. Positive β = higher PR intake associated with higher employment rate.")
+        if reg_rows:
+            rdf = pd.DataFrame(reg_rows).sort_values("β (PR)", ascending=False)
+            styled = rdf.style.format({"β (PR)":"{:+.4g}","p-value":"{:.3f}","Adj. R²":"{:.3f}"}) \
+                              .background_gradient(subset=["p-value"], cmap="RdYlGn_r", vmin=0, vmax=0.2)
+            st.dataframe(styled, width='stretch', hide_index=True)
+            st.caption("Bivariate OLS per province, HAC standard errors. Positive β = higher PR intake associated with higher employment rate.")
+        else:
+            st.info("Not enough data in the selected window to fit province-level models. Widen the Analysis Period.")
 
 # ════════════ CATEGORIES
 with tabs[6]:
@@ -586,7 +646,7 @@ with tabs[6]:
         fig = go.Figure(go.Pie(labels=tot.Broad, values=tot.Admissions, hole=0.55,
                         marker=dict(colors=[cmap[b] for b in tot.Broad]),
                         textinfo="percent", textfont_size=12))
-        fig.update_layout(**{k:v for k,v in PLOTLY_LAYOUT.items() if k not in ("xaxis","yaxis")},
+        fig.update_layout(**{k:v for k,v in PLOTLY_LAYOUT.items() if k not in ("xaxis","yaxis","legend")},
                           height=380, showlegend=True,
                           legend=dict(orientation="h", y=-0.1, x=0.5, xanchor="center"))
         st.plotly_chart(fig, width='stretch')
