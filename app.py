@@ -225,15 +225,6 @@ CONTROL_LABELS.update({
     "pr_lag12": "PR admissions (lag 12m)",
 })
 
-@st.cache_data(show_spinner=False)
-def _cached_ols(df_hash_key, y_col, x_cols_tuple, hac_lags, _df):
-    """Internal cached OLS — keyed by a hashable snapshot of the data."""
-    return _run_ols_impl(_df, y_col, list(x_cols_tuple), hac_lags)
-
-def run_ols(df, y_col, x_cols, hac_lags=6):
-    key = (df["YearMonth"].min(), df["YearMonth"].max(), len(df))
-    return _cached_ols(key, y_col, tuple(x_cols), hac_lags, df)
-
 def _run_ols_impl(df, y_col, x_cols, hac_lags=6):
     """Multivariate OLS with HAC errors. Returns (model, n) or (None, n) if
     there is not enough usable data to estimate the model."""
@@ -255,6 +246,16 @@ def _run_ols_impl(df, y_col, x_cols, hac_lags=6):
     except Exception:
         return None, len(d)
     return model, len(d)
+
+@st.cache_data(show_spinner=False)
+def _cached_ols(min_date: str, max_date: str, n_rows: int,
+                y_col: str, x_cols_tuple: tuple, hac_lags: int, _df):
+    return _run_ols_impl(_df, y_col, list(x_cols_tuple), hac_lags)
+
+def run_ols(df, y_col, x_cols, hac_lags=6):
+    min_d = df["YearMonth"].min().isoformat()
+    max_d = df["YearMonth"].max().isoformat()
+    return _cached_ols(min_d, max_d, len(df), y_col, tuple(x_cols), hac_lags, df)
 
 def coef_table(model):
     rows = []
@@ -596,11 +597,10 @@ with tabs[5]:
             st.plotly_chart(fig, width='stretch')
         with c2:
             st.markdown("<div class='sec'>PR intake vs employment rate</div>", unsafe_allow_html=True)
-            n_prov = len(prov_tot)
             fig = px.scatter(prov_tot, x="pr", y="emp_rate", size="emp",
                              hover_name="Province",
                              hover_data={"pr": ":,.0f", "emp_rate": ":.1f", "emp": ":.0f"},
-                             color="Province", color_discrete_sequence=make_series(n_prov),
+                             color="Province", color_discrete_sequence=make_series(len(prov_tot)),
                              trendline="ols", trendline_scope="overall", size_max=40)
             fig.update_traces(selector=dict(mode="markers"), textfont_size=9)
             for tr in fig.data:
@@ -659,9 +659,10 @@ with tabs[6]:
         if c in _FAMILY: return "Family"
         if c in _REFUGEE: return "Refugee"
         return "Caregiver / Other"
-    nat_levels = ircc["Geo_Level"].unique()
-    nat_level  = "Unknown" if "Unknown" in nat_levels else nat_levels[0]
-    nat_ircc = ircc[ircc.Geo_Level == nat_level].copy()
+    nat_levels = set(ircc["Geo_Level"].unique())
+    if "Unknown" not in nat_levels:
+        st.warning("Expected Geo_Level='Unknown' for national IRCC totals — category charts may be inaccurate.")
+    nat_ircc = ircc[ircc.Geo_Level == "Unknown"].copy()
     nat_ircc = nat_ircc.assign(Broad=nat_ircc["ImmCategory"].apply(broad))
     nat_ircc = nat_ircc[(nat_ircc.Year>=yr_range[0])&(nat_ircc.Year<=yr_range[1])]
     agg = nat_ircc.groupby(["Year","Broad"])["Admissions"].sum().reset_index()
