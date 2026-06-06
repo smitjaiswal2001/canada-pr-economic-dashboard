@@ -59,7 +59,7 @@ PLOTLY_LAYOUT = dict(
     yaxis=dict(showgrid=True, gridcolor=LINE, zeroline=False,
                title_font=dict(size=11, color=MUTED)),
     legend=dict(font=dict(size=11), bgcolor="rgba(0,0,0,0)"),
-    title=dict(font=dict(size=14.5, color=INK, family=FONT)),
+    title=dict(text="", font=dict(size=14.5, color=INK, family=FONT)),
     hoverlabel=dict(font_size=12, font_family=FONT, bgcolor=INK),
 )
 
@@ -406,7 +406,7 @@ def rq_block(y_col, y_label, y_units, accent, alt_direction="positive",
     styled = ct.style.format({
         "Coefficient":"{:+.4g}", "Std. Error":"{:.4g}", "t-stat":"{:+.2f}",
         "p-value":"{:.3f}", "CI Low (95%)":"{:+.4g}", "CI High (95%)":"{:+.4g}"
-    }).background_gradient(subset=["p-value"], cmap="RdYlGn_r", vmin=0, vmax=0.2)
+    }, na_rep="—").background_gradient(subset=["p-value"], cmap="RdYlGn_r", vmin=0, vmax=0.2)
     st.dataframe(styled, width='stretch', hide_index=True)
     st.caption(f"Dependent variable: **{y_label}** · OLS with HAC (Newey–West, 6 lags) standard errors · "
                f"Significance: *** p<0.001, ** p<0.01, * p<0.05, † p<0.10 · "
@@ -481,6 +481,7 @@ with tabs[0]:
             "unemployment_rate":"Unemp.","hours_worked_millions":"Hours","prime_rate":"Prime",
             "cpi_all_items":"CPI","job_vacancies":"Vacancies","labour_productivity_index":"Productiv."}
     cm = nat_f[corr_cols].corr()
+    cm = cm.fillna(0)
     cm.index = [nice[c] for c in cm.index]; cm.columns = [nice[c] for c in cm.columns]
     fig_c = px.imshow(cm, text_auto=".2f", color_continuous_scale=["#B91C1C","#FFFFFF","#0D9488"],
                       zmin=-1, zmax=1, aspect="auto")
@@ -561,7 +562,7 @@ with tabs[5]:
             pt = prov_tot.sort_values("pr", ascending=True)
             fig = go.Figure(go.Bar(x=pt.pr, y=pt.Province, orientation="h",
                             marker=dict(color=pt.pr, colorscale=[[0,MAPLE_LT],[1,MAPLE]]),
-                            text=[f"{v/1e3:.0f}K" for v in pt.pr], textposition="outside"))
+                            text=[f"{v/1e3:.0f}K" if pd.notna(v) else "—" for v in pt.pr], textposition="outside"))
             style_fig(fig, height=400, legend_bottom=False)
             fig.update_layout(coloraxis_showscale=False)
             fig.update_xaxes(title_text="Total PR admissions")
@@ -605,7 +606,7 @@ with tabs[5]:
                                  "Significant":"Yes" if m.pvalues["pr_admissions"]<0.05 else "No"})
         if reg_rows:
             rdf = pd.DataFrame(reg_rows).sort_values("β (PR)", ascending=False)
-            styled = rdf.style.format({"β (PR)":"{:+.4g}","p-value":"{:.3f}","Adj. R²":"{:.3f}"}) \
+            styled = rdf.style.format({"β (PR)":"{:+.4g}","p-value":"{:.3f}","Adj. R²":"{:.3f}"}, na_rep="—") \
                               .background_gradient(subset=["p-value"], cmap="RdYlGn_r", vmin=0, vmax=0.2)
             st.dataframe(styled, width='stretch', hide_index=True)
             st.caption("Bivariate OLS per province, HAC standard errors. Positive β = higher PR intake associated with higher employment rate.")
@@ -654,7 +655,7 @@ with tabs[6]:
     cat_tot = nat_ircc.groupby("ImmCategory")["Admissions"].sum().reset_index().sort_values("Admissions").tail(10)
     fig = go.Figure(go.Bar(x=cat_tot.Admissions, y=cat_tot.ImmCategory, orientation="h",
                     marker=dict(color=cat_tot.Admissions, colorscale=[[0,"#E0E7FF"],[1,INDIGO]]),
-                    text=[f"{v/1e3:.0f}K" for v in cat_tot.Admissions], textposition="outside"))
+                    text=[f"{v/1e3:.0f}K" if pd.notna(v) else "—" for v in cat_tot.Admissions], textposition="outside"))
     style_fig(fig, height=420, legend_bottom=False)
     fig.update_layout(coloraxis_showscale=False)
     fig.update_xaxes(title_text="Total admissions")
