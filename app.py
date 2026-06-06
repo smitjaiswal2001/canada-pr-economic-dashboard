@@ -121,7 +121,8 @@ div[data-testid="stMetric"] label {{
 div[data-testid="stMetric"] [data-testid="stMetricValue"] {{
     color: {INK}; font-weight: 700; font-size: 1.7rem; }}
 
-[data-testid="stTabs"] [data-baseweb="tab-list"] {{ gap: 4px; border-bottom: 1px solid {LINE}; }}
+[data-testid="stTabs"] [data-baseweb="tab-list"] {{
+    gap: 2px; border-bottom: 1px solid {LINE}; flex-wrap: wrap; }}
 [data-testid="stTabs"] [data-baseweb="tab"] {{
     font-weight: 600; font-size: .82rem; color: {MUTED}; padding: 10px 16px;
     border-radius: 8px 8px 0 0; }}
@@ -151,7 +152,7 @@ div[data-testid="stMetric"] [data-testid="stMetricValue"] {{
 .v-neutral {{ background:#F1F5F9; border-color:#E2E8F0; color:#334155; }}
 .verdict b {{ font-weight: 800; }}
 
-.hero {{ display:flex; align-items:center; gap:16px; margin-bottom:6px; }}
+.hero {{ display:flex; align-items:center; gap:16px; margin-bottom:6px; flex-wrap:wrap; }}
 .hero .mark {{ font-size:2.1rem; }}
 .hero h1 {{ margin:0; font-size:1.55rem; font-weight:800; color:{INK}; letter-spacing:-.02em; }}
 .hero p {{ margin:2px 0 0 0; color:{MUTED}; font-size:.85rem; }}
@@ -159,6 +160,53 @@ div[data-testid="stMetric"] [data-testid="stMetricValue"] {{
 [data-testid="stDataFrame"] {{ border:1px solid {LINE}; border-radius:12px; }}
 .foot {{ text-align:center; color:{MIST}; font-size:.78rem; padding:18px 0 4px 0;
     border-top:1px solid {LINE}; margin-top:28px; }}
+
+/* ── Mobile overrides ────────────────────────────────────────────── */
+@media (max-width: 768px) {{
+    .block-container {{ padding-left: 1rem; padding-right: 1rem; }}
+
+    /* KPI cards: 2-column grid on mobile */
+    [data-testid="stHorizontalBlock"] {{
+        flex-wrap: wrap !important;
+    }}
+    [data-testid="stHorizontalBlock"] > [data-testid="stVerticalBlock"] {{
+        min-width: calc(50% - 0.5rem) !important;
+        flex: 1 1 calc(50% - 0.5rem) !important;
+    }}
+
+    /* Metric value font size */
+    div[data-testid="stMetric"] [data-testid="stMetricValue"] {{
+        font-size: 1.25rem; }}
+    div[data-testid="stMetric"] {{ padding: 12px 14px; }}
+
+    /* Hero heading */
+    .hero h1 {{ font-size: 1.15rem; }}
+    .hero p  {{ font-size: .78rem; }}
+
+    /* Tabs: smaller text, wrap */
+    [data-testid="stTabs"] [data-baseweb="tab"] {{
+        font-size: .72rem; padding: 8px 10px; }}
+
+    /* Hypothesis card */
+    .hyp {{ padding: 14px 16px; }}
+    .hyp h3 {{ font-size: 1rem; }}
+    .hyp .row {{ font-size: .82rem; flex-wrap: wrap; }}
+
+    /* Verdict */
+    .verdict {{ font-size: .82rem; padding: 12px 14px; }}
+
+    /* Section labels */
+    .sec {{ font-size: .66rem; margin: 16px 0 8px 0; }}
+}}
+
+@media (max-width: 480px) {{
+    /* Stack ALL column pairs to single column */
+    [data-testid="stHorizontalBlock"] > [data-testid="stVerticalBlock"] {{
+        min-width: 100% !important;
+        flex: 1 1 100% !important;
+    }}
+    .hero h1 {{ font-size: 1rem; }}
+}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -415,7 +463,7 @@ def rq_block(y_col, y_label, y_units, accent, alt_direction="positive",
         style_fig(fig, height=340)
         fig.update_yaxes(title_text="PR admissions / mo", secondary_y=False)
         fig.update_yaxes(title_text=monthly_label or y_label, secondary_y=True, showgrid=False)
-        st.plotly_chart(fig, width='stretch')
+        st.plotly_chart(fig, use_container_width=True)
     with c2:
         st.markdown("<div class='sec'>Partial relationship</div>", unsafe_allow_html=True)
         d = nat_f.dropna(subset=[y_col, pr_var])
@@ -426,7 +474,7 @@ def rq_block(y_col, y_label, y_units, accent, alt_direction="positive",
         style_fig(fig2, height=340, legend_bottom=False)
         fig2.update_xaxes(title_text=f"PR admissions ({lag_choice.lower()})")
         fig2.update_yaxes(title_text=y_label)
-        st.plotly_chart(fig2, width='stretch')
+        st.plotly_chart(fig2, use_container_width=True)
 
     st.markdown("<div class='sec'>Full regression output</div>", unsafe_allow_html=True)
     ct = coef_table(model)
@@ -434,7 +482,7 @@ def rq_block(y_col, y_label, y_units, accent, alt_direction="positive",
         "Coefficient":"{:+.4g}", "Std. Error":"{:.4g}", "t-stat":"{:+.2f}",
         "p-value":"{:.3f}", "CI Low (95%)":"{:+.4g}", "CI High (95%)":"{:+.4g}"
     }, na_rep="—").background_gradient(subset=["p-value"], cmap="RdYlGn_r", vmin=0, vmax=0.2)
-    st.dataframe(styled, width='stretch', hide_index=True)
+    st.dataframe(styled, use_container_width=True, hide_index=True)
     st.caption(f"Dependent variable: **{y_label}** · OLS with HAC (Newey–West, 6 lags) standard errors · "
                f"Significance: *** p<0.001, ** p<0.01, * p<0.05, † p<0.10 · "
                f"Specification: {'controlled' if use_controls else 'bivariate'}, {lag_choice.lower()}.")
@@ -462,7 +510,7 @@ with tabs[0]:
     fig.update_xaxes(showgrid=False, linecolor=LINE)
     fig.update_yaxes(showgrid=True, gridcolor=LINE)
     fig.update_annotations(font_size=12.5, font_color=INK)
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("<div class='sec'>Hypothesis scorecard · current specification</div>", unsafe_allow_html=True)
     st.caption(f"Spec: **{model_spec}** · Timing: **{lag_choice}** · Adjust in the sidebar to compare.")
@@ -498,7 +546,7 @@ with tabs[0]:
     styled = sc.style.format({"β (PR)":"{:+.4g}","p-value":"{:.3f}","Adj. R²":"{:.3f}"}, na_rep="—") \
                      .map(color_verdict, subset=["Verdict"]) \
                      .background_gradient(subset=["p-value"], cmap="RdYlGn_r", vmin=0, vmax=0.2)
-    st.dataframe(styled, width='stretch', hide_index=True)
+    st.dataframe(styled, use_container_width=True, hide_index=True)
 
     st.markdown("<div class='sec'>Correlation structure</div>", unsafe_allow_html=True)
     corr_cols = ["pr_admissions_national","gdp_real_millions","employment_thousands",
@@ -516,7 +564,7 @@ with tabs[0]:
     fig_c.update_layout(**{k:v for k,v in PLOTLY_LAYOUT.items() if k not in ("xaxis","yaxis")},
                         height=440, coloraxis_colorbar=dict(title="r", thickness=12))
     fig_c.update_traces(textfont_size=10)
-    st.plotly_chart(fig_c, width='stretch')
+    st.plotly_chart(fig_c, use_container_width=True)
 
 # ════════════ RQ1
 with tabs[1]:
@@ -594,7 +642,7 @@ with tabs[5]:
             style_fig(fig, height=400, legend_bottom=False)
             fig.update_layout(coloraxis_showscale=False)
             fig.update_xaxes(title_text="Total PR admissions")
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         with c2:
             st.markdown("<div class='sec'>PR intake vs employment rate</div>", unsafe_allow_html=True)
             fig = px.scatter(prov_tot, x="pr", y="emp_rate", size="emp",
@@ -609,7 +657,7 @@ with tabs[5]:
             fig.update_layout(showlegend=False)
             fig.update_xaxes(title_text="Total PR admissions")
             fig.update_yaxes(title_text="Avg employment rate (%)")
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
 
         st.markdown("<div class='sec'>PR admissions over time · selected provinces</div>", unsafe_allow_html=True)
         psel = prov_f[prov_f.Province.isin(sel_provinces)].groupby(["Year","Province"])["pr_admissions"].sum().reset_index()
@@ -618,7 +666,7 @@ with tabs[5]:
         fig.update_traces(line=dict(width=0.5))
         style_fig(fig, height=340)
         fig.update_yaxes(title_text="PR admissions")
-        st.plotly_chart(fig, width='stretch')
+        st.plotly_chart(fig, use_container_width=True)
 
         st.markdown("<div class='sec'>Province-level effect · PR → employment rate</div>", unsafe_allow_html=True)
         reg_rows = []
@@ -639,7 +687,7 @@ with tabs[5]:
             rdf = pd.DataFrame(reg_rows).sort_values("β (PR)", ascending=False)
             styled = rdf.style.format({"β (PR)":"{:+.4g}","p-value":"{:.3f}","Adj. R²":"{:.3f}"}, na_rep="—") \
                               .background_gradient(subset=["p-value"], cmap="RdYlGn_r", vmin=0, vmax=0.2)
-            st.dataframe(styled, width='stretch', hide_index=True)
+            st.dataframe(styled, use_container_width=True, hide_index=True)
             st.caption("Bivariate OLS per province, HAC standard errors. Positive β = higher PR intake associated with higher employment rate.")
         else:
             st.info("Not enough data in the selected window to fit province-level models. Widen the Analysis Period.")
@@ -674,7 +722,7 @@ with tabs[6]:
         fig.update_traces(marker_line_width=0)
         style_fig(fig, height=380)
         fig.update_yaxes(title_text="PR admissions")
-        st.plotly_chart(fig, width='stretch')
+        st.plotly_chart(fig, use_container_width=True)
     with c2:
         tot = agg.groupby("Broad")["Admissions"].sum().reset_index()
         fig = go.Figure(go.Pie(labels=tot.Broad, values=tot.Admissions, hole=0.55,
@@ -684,7 +732,7 @@ with tabs[6]:
         fig.update_layout(**{k:v for k,v in PLOTLY_LAYOUT.items() if k not in ("xaxis","yaxis","legend")},
                           height=380, showlegend=True,
                           legend=dict(orientation="h", y=-0.1, x=0.5, xanchor="center"))
-        st.plotly_chart(fig, width='stretch')
+        st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("<div class='sec'>Top programs by total admissions</div>", unsafe_allow_html=True)
     _all_cat = nat_ircc.groupby("ImmCategory")["Admissions"].sum().reset_index().sort_values("Admissions")
@@ -698,7 +746,7 @@ with tabs[6]:
     style_fig(fig, height=420, legend_bottom=False)
     fig.update_layout(coloraxis_showscale=False)
     fig.update_xaxes(title_text="Total admissions")
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("<div class='sec'>Program intensity by province</div>", unsafe_allow_html=True)
     pv = ircc[ircc.Geo_Level=="Provincial"].copy()
@@ -709,7 +757,7 @@ with tabs[6]:
     fig.update_layout(**{k:v for k,v in PLOTLY_LAYOUT.items() if k not in ("xaxis","yaxis")},
                       height=460, coloraxis_colorbar=dict(title="Admissions", thickness=12))
     fig.update_xaxes(tickangle=-40, tickfont_size=9)
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig, use_container_width=True)
 
 # ════════════ METHODOLOGY
 with tabs[7]:
@@ -755,7 +803,7 @@ partly spurious, which is why the controlled specification is the default for in
         "Source": ["IRCC","Statistics Canada","Statistics Canada","Statistics Canada",
                    "Statistics Canada","Constructed","Constructed","Bank of Canada","Statistics Canada"]
     })
-    st.dataframe(defs, width='stretch', hide_index=True)
+    st.dataframe(defs, use_container_width=True, hide_index=True)
     st.markdown("<div class='sec'>Limitations</div>", unsafe_allow_html=True)
     st.markdown("""
 - **Association, not causation.** Controls reduce confounding but do not establish causality;
