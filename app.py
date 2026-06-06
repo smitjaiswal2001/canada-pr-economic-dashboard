@@ -45,7 +45,14 @@ INDIGO   = "#4F46E5"
 VIOLET   = "#7C3AED"
 EMERALD  = "#059669"
 
-SERIES = [INK, MAPLE, TEAL, AMBER, INDIGO, VIOLET, EMERALD, MIST, "#DB2777", "#0891B2"]
+_BASE_SERIES = [INK, MAPLE, TEAL, AMBER, INDIGO, VIOLET, EMERALD, MIST, "#DB2777", "#0891B2",
+                "#0E7490", "#B45309", "#6D28D9"]
+
+def make_series(n):
+    """Return n colours, cycling the palette if needed."""
+    return [_BASE_SERIES[i % len(_BASE_SERIES)] for i in range(max(n, 1))]
+
+SERIES = _BASE_SERIES
 
 FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
 
@@ -70,10 +77,13 @@ def style_fig(fig, height=360, legend_bottom=True):
                                       xanchor="center", x=0.5, font=dict(size=11)))
     return fig
 
+COVID_START = "2020-03-01"
+COVID_END   = "2021-06-30"
+
 def covid_shade(fig, row=None, col=None):
     kw = {}
     if row is not None: kw = dict(row=row, col=col)
-    fig.add_vrect(x0="2020-03-01", x1="2021-06-30",
+    fig.add_vrect(x0=COVID_START, x1=COVID_END,
                   fillcolor=AMBER, opacity=0.07, line_width=0, **kw)
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -199,16 +209,32 @@ all_years = sorted(nat["Year"].unique())
 # ═══════════════════════════════════════════════════════════════════════
 #  ECONOMETRIC ENGINE
 # ═══════════════════════════════════════════════════════════════════════
-CONTROLS = ["time_trend", "covid_dummy", "prime_rate", "cpi_all_items"]
-CONTROL_LABELS = {
-    "time_trend": "Time trend", "covid_dummy": "COVID-19 dummy",
-    "prime_rate": "Prime interest rate", "cpi_all_items": "CPI (all items)",
-    "const": "Intercept", "pr_admissions_national": "PR admissions",
-    "pr_lag3": "PR admissions (lag 3m)", "pr_lag6": "PR admissions (lag 6m)",
+_CONTROL_DEFS = [
+    ("time_trend",   "Time trend"),
+    ("covid_dummy",  "COVID-19 dummy"),
+    ("prime_rate",   "Prime interest rate"),
+    ("cpi_all_items","CPI (all items)"),
+]
+CONTROLS = [k for k, _ in _CONTROL_DEFS]
+CONTROL_LABELS = {k: v for k, v in _CONTROL_DEFS}
+CONTROL_LABELS.update({
+    "const": "Intercept",
+    "pr_admissions_national": "PR admissions",
+    "pr_lag3":  "PR admissions (lag 3m)",
+    "pr_lag6":  "PR admissions (lag 6m)",
     "pr_lag12": "PR admissions (lag 12m)",
-}
+})
+
+@st.cache_data(show_spinner=False)
+def _cached_ols(df_hash_key, y_col, x_cols_tuple, hac_lags, _df):
+    """Internal cached OLS — keyed by a hashable snapshot of the data."""
+    return _run_ols_impl(_df, y_col, list(x_cols_tuple), hac_lags)
 
 def run_ols(df, y_col, x_cols, hac_lags=6):
+    key = (df["YearMonth"].min(), df["YearMonth"].max(), len(df))
+    return _cached_ols(key, y_col, tuple(x_cols), hac_lags, df)
+
+def _run_ols_impl(df, y_col, x_cols, hac_lags=6):
     """Multivariate OLS with HAC errors. Returns (model, n) or (None, n) if
     there is not enough usable data to estimate the model."""
     d = df.dropna(subset=[y_col] + x_cols).copy()
@@ -480,9 +506,10 @@ with tabs[0]:
     nice = {"pr_admissions_national":"PR","gdp_real_millions":"GDP","employment_thousands":"Employ.",
             "unemployment_rate":"Unemp.","hours_worked_millions":"Hours","prime_rate":"Prime",
             "cpi_all_items":"CPI","job_vacancies":"Vacancies","labour_productivity_index":"Productiv."}
-    cm = nat_f[corr_cols].corr()
-    cm = cm.fillna(0)
-    cm.index = [nice[c] for c in cm.index]; cm.columns = [nice[c] for c in cm.columns]
+    avail = [c for c in corr_cols if c in nat_f.columns and nat_f[c].notna().sum() > 1]
+    cm = nat_f[avail].corr()
+    cm.index = [nice.get(c, c) for c in cm.index]
+    cm.columns = [nice.get(c, c) for c in cm.columns]
     fig_c = px.imshow(cm, text_auto=".2f", color_continuous_scale=["#B91C1C","#FFFFFF","#0D9488"],
                       zmin=-1, zmax=1, aspect="auto")
     fig_c.update_layout(**{k:v for k,v in PLOTLY_LAYOUT.items() if k not in ("xaxis","yaxis")},
@@ -569,10 +596,13 @@ with tabs[5]:
             st.plotly_chart(fig, width='stretch')
         with c2:
             st.markdown("<div class='sec'>PR intake vs employment rate</div>", unsafe_allow_html=True)
-            fig = px.scatter(prov_tot, x="pr", y="emp_rate", size="emp", text="Province",
-                             color="Province", color_discrete_sequence=SERIES, trendline="ols",
-                             trendline_scope="overall", size_max=40)
-            fig.update_traces(textposition="top center", textfont_size=9)
+            n_prov = len(prov_tot)
+            fig = px.scatter(prov_tot, x="pr", y="emp_rate", size="emp",
+                             hover_name="Province",
+                             hover_data={"pr": ":,.0f", "emp_rate": ":.1f", "emp": ":.0f"},
+                             color="Province", color_discrete_sequence=make_series(n_prov),
+                             trendline="ols", trendline_scope="overall", size_max=40)
+            fig.update_traces(selector=dict(mode="markers"), textfont_size=9)
             for tr in fig.data:
                 if tr.mode == "lines": tr.line.color = INK; tr.line.dash="dot"
             style_fig(fig, height=400, legend_bottom=False)
@@ -583,7 +613,8 @@ with tabs[5]:
 
         st.markdown("<div class='sec'>PR admissions over time · selected provinces</div>", unsafe_allow_html=True)
         psel = prov_f[prov_f.Province.isin(sel_provinces)].groupby(["Year","Province"])["pr_admissions"].sum().reset_index()
-        fig = px.area(psel, x="Year", y="pr_admissions", color="Province", color_discrete_sequence=SERIES)
+        fig = px.area(psel, x="Year", y="pr_admissions", color="Province",
+                      color_discrete_sequence=make_series(len(sel_provinces)))
         fig.update_traces(line=dict(width=0.5))
         style_fig(fig, height=340)
         fig.update_yaxes(title_text="PR admissions")
@@ -616,20 +647,22 @@ with tabs[5]:
 # ════════════ CATEGORIES
 with tabs[6]:
     st.markdown("<div class='sec'>Composition of permanent residency by program</div>", unsafe_allow_html=True)
-    econ = ["Skilled Worker","Skilled Trade","Canadian Experience","Provincial Nominee Program",
+    _ECON = frozenset(["Skilled Worker","Skilled Trade","Canadian Experience","Provincial Nominee Program",
             "Agri-Food Pilot","Rural and Northern Immigration","Start-up Business","Entrepreneur",
             "Self-Employed","Investor","Atlantic Immigration Pilot Programs","Atlantic Immigration Programs",
-            "Federal Economic Mobility Pathways Pilot","Temporary Resident to Permanent Resident Pathway"]
-    family = ["Sponsored Spouse or Partner","Sponsored Children","Sponsored Parent or Grandparent",
-              "Sponsored Extended Family Member"]
-    refugee = ["Government-Assisted Refugee","Privately Sponsored Refugee","Blended Sponsorship Refugee"]
+            "Federal Economic Mobility Pathways Pilot","Temporary Resident to Permanent Resident Pathway"])
+    _FAMILY = frozenset(["Sponsored Spouse or Partner","Sponsored Children","Sponsored Parent or Grandparent",
+              "Sponsored Extended Family Member"])
+    _REFUGEE = frozenset(["Government-Assisted Refugee","Privately Sponsored Refugee","Blended Sponsorship Refugee"])
     def broad(c):
-        if c in econ: return "Economic"
-        if c in family: return "Family"
-        if c in refugee: return "Refugee"
+        if c in _ECON: return "Economic"
+        if c in _FAMILY: return "Family"
+        if c in _REFUGEE: return "Refugee"
         return "Caregiver / Other"
-    ircc["Broad"] = ircc["ImmCategory"].apply(broad)
-    nat_ircc = ircc[ircc.Geo_Level=="Unknown"].copy()
+    nat_levels = ircc["Geo_Level"].unique()
+    nat_level  = "Unknown" if "Unknown" in nat_levels else nat_levels[0]
+    nat_ircc = ircc[ircc.Geo_Level == nat_level].copy()
+    nat_ircc = nat_ircc.assign(Broad=nat_ircc["ImmCategory"].apply(broad))
     nat_ircc = nat_ircc[(nat_ircc.Year>=yr_range[0])&(nat_ircc.Year<=yr_range[1])]
     agg = nat_ircc.groupby(["Year","Broad"])["Admissions"].sum().reset_index()
     cmap = {"Economic":INDIGO,"Family":EMERALD,"Refugee":AMBER,"Caregiver / Other":MIST}
@@ -645,14 +678,19 @@ with tabs[6]:
         tot = agg.groupby("Broad")["Admissions"].sum().reset_index()
         fig = go.Figure(go.Pie(labels=tot.Broad, values=tot.Admissions, hole=0.55,
                         marker=dict(colors=[cmap[b] for b in tot.Broad]),
-                        textinfo="percent", textfont_size=12))
+                        textinfo="percent+label", textfont_size=11,
+                        hovertemplate="%{label}: %{value:,.0f} (%{percent})<extra></extra>"))
         fig.update_layout(**{k:v for k,v in PLOTLY_LAYOUT.items() if k not in ("xaxis","yaxis","legend")},
                           height=380, showlegend=True,
                           legend=dict(orientation="h", y=-0.1, x=0.5, xanchor="center"))
         st.plotly_chart(fig, width='stretch')
 
     st.markdown("<div class='sec'>Top programs by total admissions</div>", unsafe_allow_html=True)
-    cat_tot = nat_ircc.groupby("ImmCategory")["Admissions"].sum().reset_index().sort_values("Admissions").tail(10)
+    _all_cat = nat_ircc.groupby("ImmCategory")["Admissions"].sum().reset_index().sort_values("Admissions")
+    _top_n = min(10, len(_all_cat))
+    if _top_n < 3:
+        st.warning("Fewer than 3 program categories in this period — broaden the date range for a meaningful chart.")
+    cat_tot = _all_cat.tail(_top_n)
     fig = go.Figure(go.Bar(x=cat_tot.Admissions, y=cat_tot.ImmCategory, orientation="h",
                     marker=dict(color=cat_tot.Admissions, colorscale=[[0,"#E0E7FF"],[1,INDIGO]]),
                     text=[f"{v/1e3:.0f}K" if pd.notna(v) else "—" for v in cat_tot.Admissions], textposition="outside"))
