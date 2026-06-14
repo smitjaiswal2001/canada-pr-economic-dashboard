@@ -65,7 +65,6 @@ PLOTLY_LAYOUT = dict(
     yaxis=dict(showgrid=True, gridcolor=LINE, zeroline=False,
                title_font=dict(size=11, color=MUTED)),
     legend=dict(font=dict(size=11), bgcolor="rgba(0,0,0,0)"),
-    title_font=dict(size=14.5, color=INK, family=FONT),
     hoverlabel=dict(font_size=12, font_family=FONT, bgcolor=INK),
 )
 
@@ -430,7 +429,7 @@ def rq_block(y_col, y_label, y_units, accent, alt_direction="positive",
         style_fig(fig, height=340)
         fig.update_yaxes(title_text="PR admissions / mo", secondary_y=False)
         fig.update_yaxes(title_text=monthly_label or y_label, secondary_y=True, showgrid=False)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, theme=None, use_container_width=True)
     with c2:
         st.markdown("<div class='sec'>Partial relationship</div>", unsafe_allow_html=True)
         d = nat_f.dropna(subset=[y_col, pr_var])
@@ -441,7 +440,7 @@ def rq_block(y_col, y_label, y_units, accent, alt_direction="positive",
         style_fig(fig2, height=340, legend_bottom=False)
         fig2.update_xaxes(title_text=f"PR admissions ({lag_choice.lower()})")
         fig2.update_yaxes(title_text=y_label)
-        st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2, theme=None, use_container_width=True)
 
     st.markdown("<div class='sec'>Full regression output</div>", unsafe_allow_html=True)
     ct = coef_table(model)
@@ -489,7 +488,7 @@ with tabs[0]:
     fig.update_xaxes(showgrid=False, linecolor=LINE)
     fig.update_yaxes(showgrid=True, gridcolor=LINE)
     fig.update_annotations(font_size=12.5, font_color=INK)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, theme=None, use_container_width=True)
 
     # Hypothesis Scorecard from report
     st.markdown("<div class='sec'>Hypothesis verdicts — Final Report</div>", unsafe_allow_html=True)
@@ -540,7 +539,7 @@ with tabs[0]:
     fig_c.update_layout(**{k:v for k,v in PLOTLY_LAYOUT.items() if k not in ("xaxis","yaxis")},
                         height=420, coloraxis_colorbar=dict(title="r", thickness=12))
     fig_c.update_traces(textfont_size=10)
-    st.plotly_chart(fig_c, use_container_width=True)
+    st.plotly_chart(fig_c, theme=None, use_container_width=True)
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -646,7 +645,7 @@ with tabs[5]:
                             text=[f"{v/1e3:.0f}K" for v in pt.pr], textposition="outside"))
             style_fig(fig, height=400, legend_bottom=False)
             fig.update_xaxes(title_text="Total PR admissions")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, theme=None, use_container_width=True)
         with c2:
             st.markdown("<div class='sec'>PR intake vs employment rate</div>", unsafe_allow_html=True)
             fig = px.scatter(prov_tot, x="pr", y="emp_rate", size="emp", text="Province",
@@ -659,7 +658,7 @@ with tabs[5]:
             fig.update_layout(showlegend=False)
             fig.update_xaxes(title_text="Total PR admissions")
             fig.update_yaxes(title_text="Avg employment rate (%)")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, theme=None, use_container_width=True)
 
         st.markdown("<div class='sec'>PR admissions over time · selected provinces</div>", unsafe_allow_html=True)
         psel = prov_f[prov_f.Province.isin(sel_provinces)].groupby(["Year","Province"])["pr_admissions"].sum().reset_index()
@@ -667,7 +666,7 @@ with tabs[5]:
         fig.update_traces(line=dict(width=0.5))
         style_fig(fig, height=340)
         fig.update_yaxes(title_text="PR admissions")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, theme=None, use_container_width=True)
 
     # Province clustering figure
     fig_path = FIGURES / "6a_03b_province_clusters_pca.png"
@@ -747,7 +746,7 @@ with tabs[7]:
         fig.update_traces(marker_line_width=0)
         style_fig(fig, height=380)
         fig.update_yaxes(title_text="PR admissions")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, theme=None, use_container_width=True)
     with c2:
         tot = agg.groupby("Broad")["Admissions"].sum().reset_index()
         fig = go.Figure(go.Pie(labels=tot.Broad, values=tot.Admissions, hole=0.55,
@@ -756,7 +755,7 @@ with tabs[7]:
         fig.update_layout(**{k:v for k,v in PLOTLY_LAYOUT.items() if k not in ("xaxis","yaxis","legend")},
                           height=380, showlegend=True,
                           legend=dict(orientation="h", y=-0.1, x=0.5, xanchor="center"))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, theme=None, use_container_width=True)
 
     # Class OLS results
     class_ols = load_table("23_class_ols.csv")
