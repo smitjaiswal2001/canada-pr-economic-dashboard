@@ -1,0 +1,16 @@
+RQ,Class,β,p-value,Sig,Adj R²,n
+RQ1 GDP,Economic,51.13091,0.0,***,0.759,44
+RQ1 GDP,Family,445.22424,0.0194,*,0.759,44
+RQ1 GDP,Refugee,67.550984,0.0031,**,0.759,44
+RQ2 Employment,Economic,1.528519,0.0001,***,0.787,44
+RQ2 Employment,Family,16.767167,0.0046,**,0.787,44
+RQ2 Employment,Refugee,2.022157,0.0025,**,0.787,44
+RQ3 Unemployment,Economic,-0.000123,0.7702,n.s.,0.192,44
+RQ3 Unemployment,Family,-0.020855,0.2381,n.s.,0.192,44
+RQ3 Unemployment,Refugee,-0.003775,0.03,*,0.192,44
+RQ4 Hours Worked,Economic,570.304801,0.0,***,0.72,44
+RQ4 Hours Worked,Family,8092.242574,0.015,*,0.72,44
+RQ4 Hours Worked,Refugee,926.656891,0.0026,**,0.72,44
+Supp GDP/Worker,Economic,0.000158,0.0,***,0.314,44
+Supp GDP/Worker,Family,-0.000285,0.7749,n.s.,0.314,44
+Supp GDP/Worker,Refugee,0.000214,0.17,n.s.,0.314,44

@@ -1,0 +1,16 @@
+Hypothesis,Outcome,Model,Best α,R²,RMSE,n,n_nonzero_coef
+RQ1 H1 GDP,gdp_real_millions,Lasso,3.393222,0.9947,854.837,126,11
+RQ1 H1 GDP,gdp_real_millions,Ridge,0.012068,0.9947,854.406,126,11
+RQ1 H1 GDP,gdp_real_millions,ElasticNet,0.001265,0.9947,855.303,126,11
+RQ2 H2 Employment,employment_thousands,Lasso,0.028118,0.9963,64.592,126,11
+RQ2 H2 Employment,employment_thousands,Ridge,0.000309,0.9963,64.592,126,11
+RQ2 H2 Employment,employment_thousands,ElasticNet,0.001677,0.9963,64.601,126,11
+RQ3 H3 Unemployment,unemployment_rate,Lasso,0.000309,0.9955,0.061,126,10
+RQ3 H3 Unemployment,unemployment_rate,Ridge,0.005179,0.9955,0.061,126,11
+RQ3 H3 Unemployment,unemployment_rate,ElasticNet,0.000309,0.9955,0.061,126,10
+RQ4 H4 Labour Productivity,labour_productivity_index,Lasso,0.0001,0.9422,0.394,114,11
+RQ4 H4 Labour Productivity,labour_productivity_index,Ridge,0.0001,0.9422,0.394,114,11
+RQ4 H4 Labour Productivity,labour_productivity_index,ElasticNet,0.0001,0.9422,0.394,114,11
+RQ5 H5 Hours Worked,hours_worked_millions,Lasso,100.0,0.9776,20635.434,126,11
+RQ5 H5 Hours Worked,hours_worked_millions,Ridge,0.355648,0.9775,20710.793,126,11
+RQ5 H5 Hours Worked,hours_worked_millions,ElasticNet,0.049417,0.9739,22272.534,126,11

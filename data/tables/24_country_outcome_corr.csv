@@ -1,0 +1,76 @@
+Country,Outcome,Pearson r
+India,GDP,0.684
+India,Employment,0.65
+India,Unemployment,-0.418
+India,Hours Worked,0.621
+India,GDP/Worker,0.646
+Philippines,GDP,-0.33
+Philippines,Employment,-0.242
+Philippines,Unemployment,-0.291
+Philippines,Hours Worked,-0.076
+Philippines,GDP/Worker,-0.64
+"China, People's Republic of",GDP,0.229
+"China, People's Republic of",Employment,0.216
+"China, People's Republic of",Unemployment,-0.539
+"China, People's Republic of",Hours Worked,0.302
+"China, People's Republic of",GDP/Worker,0.225
+Nigeria,GDP,0.828
+Nigeria,Employment,0.78
+Nigeria,Unemployment,-0.446
+Nigeria,Hours Worked,0.733
+Nigeria,GDP/Worker,0.807
+Syria,GDP,-0.223
+Syria,Employment,-0.201
+Syria,Unemployment,-0.049
+Syria,Hours Worked,-0.122
+Syria,GDP/Worker,-0.258
+Pakistan,GDP,0.23
+Pakistan,Employment,0.268
+Pakistan,Unemployment,-0.507
+Pakistan,Hours Worked,0.357
+Pakistan,GDP/Worker,-0.011
+United States of America,GDP,0.17
+United States of America,Employment,0.145
+United States of America,Unemployment,-0.44
+United States of America,Hours Worked,0.22
+United States of America,GDP/Worker,0.239
+France,GDP,0.552
+France,Employment,0.517
+France,Unemployment,-0.272
+France,Hours Worked,0.513
+France,GDP/Worker,0.541
+Afghanistan,GDP,0.589
+Afghanistan,Employment,0.567
+Afghanistan,Unemployment,-0.448
+Afghanistan,Hours Worked,0.531
+Afghanistan,GDP/Worker,0.519
+Iran,GDP,0.293
+Iran,Employment,0.295
+Iran,Unemployment,-0.277
+Iran,Hours Worked,0.333
+Iran,GDP/Worker,0.191
+"Cameroon, Federal Republic of",GDP,0.804
+"Cameroon, Federal Republic of",Employment,0.834
+"Cameroon, Federal Republic of",Unemployment,-0.164
+"Cameroon, Federal Republic of",Hours Worked,0.75
+"Cameroon, Federal Republic of",GDP/Worker,0.443
+Eritrea,GDP,0.736
+Eritrea,Employment,0.756
+Eritrea,Unemployment,-0.343
+Eritrea,Hours Worked,0.708
+Eritrea,GDP/Worker,0.445
+Brazil,GDP,0.471
+Brazil,Employment,0.402
+Brazil,Unemployment,-0.185
+Brazil,Hours Worked,0.365
+Brazil,GDP/Worker,0.648
+United Kingdom and Overseas Territories,GDP,-0.259
+United Kingdom and Overseas Territories,Employment,-0.258
+United Kingdom and Overseas Territories,Unemployment,-0.209
+United Kingdom and Overseas Territories,Hours Worked,-0.134
+United Kingdom and Overseas Territories,GDP/Worker,-0.188
+"Korea, Republic of",GDP,0.029
+"Korea, Republic of",Employment,-0.011
+"Korea, Republic of",Unemployment,-0.247
+"Korea, Republic of",Hours Worked,0.047
+"Korea, Republic of",GDP/Worker,0.203

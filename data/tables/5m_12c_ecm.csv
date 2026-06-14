@@ -1,0 +1,4 @@
+Hypothesis,ECT coef (speed),ECT p-value,ECT sig,SR Δ coef,SR p-value,SR sig,ECM R²
+RQ3 H3 Unemployment,-0.1305,0.0192,*,-0.0,0.1129,,0.134
+RQ4 H4 GDP/Worker,-0.1134,0.0837,†,3.0875,0.0279,*,0.118
+RQ5 H5 Hours Worked,-0.1134,0.0837,†,3.0875,0.0279,*,0.118

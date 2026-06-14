@@ -1,0 +1,56 @@
+Feature,Importance,Hypothesis
+pr_admissions_national,0.024211909353119034,RQ1 H1 GDP
+time_trend,0.24536872679949798,RQ1 H1 GDP
+Month,0.0016518541893950694,RQ1 H1 GDP
+covid_dummy,0.0007535183639608697,RQ1 H1 GDP
+post_covid,0.0013293996201033745,RQ1 H1 GDP
+prime_rate,0.11750184802784543,RQ1 H1 GDP
+employment_rate,0.020499905815487485,RQ1 H1 GDP
+participation_rate,0.022726213577582897,RQ1 H1 GDP
+cpi_all_items,0.2824164613225371,RQ1 H1 GDP
+job_vacancies,0.08560604779360956,RQ1 H1 GDP
+avg_offered_hourly_wage,0.19793411513686107,RQ1 H1 GDP
+pr_admissions_national,0.0327344475422832,RQ2 H2 Employment
+time_trend,0.2445191522743686,RQ2 H2 Employment
+Month,0.0014656481612580344,RQ2 H2 Employment
+covid_dummy,0.00042586255443749987,RQ2 H2 Employment
+post_covid,0.0009556780513724553,RQ2 H2 Employment
+prime_rate,0.12955103724573347,RQ2 H2 Employment
+employment_rate,0.021374693718534395,RQ2 H2 Employment
+participation_rate,0.02007238508469613,RQ2 H2 Employment
+cpi_all_items,0.2708653094968176,RQ2 H2 Employment
+job_vacancies,0.07172510079732182,RQ2 H2 Employment
+avg_offered_hourly_wage,0.20631068507317693,RQ2 H2 Employment
+pr_admissions_national,0.0657514478651243,RQ3 H3 Unemployment
+time_trend,0.09284936754501998,RQ3 H3 Unemployment
+Month,0.008479361279786563,RQ3 H3 Unemployment
+covid_dummy,0.0004914703483150491,RQ3 H3 Unemployment
+post_covid,0.025863240616424973,RQ3 H3 Unemployment
+prime_rate,0.15775093938648188,RQ3 H3 Unemployment
+employment_rate,0.3567532413750249,RQ3 H3 Unemployment
+participation_rate,0.06781336944626863,RQ3 H3 Unemployment
+cpi_all_items,0.0773673550459681,RQ3 H3 Unemployment
+job_vacancies,0.09091966763183375,RQ3 H3 Unemployment
+avg_offered_hourly_wage,0.05596053945975181,RQ3 H3 Unemployment
+pr_admissions_national,0.04472168629488039,RQ4 H4 Labour Productivity
+time_trend,0.23653991789626824,RQ4 H4 Labour Productivity
+Month,0.0029796018940474052,RQ4 H4 Labour Productivity
+covid_dummy,0.027371407489439913,RQ4 H4 Labour Productivity
+post_covid,0.006924388511368233,RQ4 H4 Labour Productivity
+prime_rate,0.0680335916850452,RQ4 H4 Labour Productivity
+employment_rate,0.04438948507510288,RQ4 H4 Labour Productivity
+participation_rate,0.021816190403711976,RQ4 H4 Labour Productivity
+cpi_all_items,0.20872495256668558,RQ4 H4 Labour Productivity
+job_vacancies,0.09831895606549929,RQ4 H4 Labour Productivity
+avg_offered_hourly_wage,0.240179822117951,RQ4 H4 Labour Productivity
+pr_admissions_national,0.037573918005227004,RQ5 H5 Hours Worked
+time_trend,0.2427027575876785,RQ5 H5 Hours Worked
+Month,0.003267911387981836,RQ5 H5 Hours Worked
+covid_dummy,0.008701355831499648,RQ5 H5 Hours Worked
+post_covid,0.0018675942945632603,RQ5 H5 Hours Worked
+prime_rate,0.13621136080459478,RQ5 H5 Hours Worked
+employment_rate,0.04136377360046308,RQ5 H5 Hours Worked
+participation_rate,0.03382975574029102,RQ5 H5 Hours Worked
+cpi_all_items,0.2579603094916583,RQ5 H5 Hours Worked
+job_vacancies,0.05445214017230687,RQ5 H5 Hours Worked
+avg_offered_hourly_wage,0.1820691230837357,RQ5 H5 Hours Worked

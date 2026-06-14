@@ -1,0 +1,6 @@
+Hypothesis,Outcome,n,EG t-stat,p-value,Sig,Cointegrated
+RQ1 H1 GDP,gdp_real_millions,132,-1.3795,0.8045,,No
+RQ2 H2 Employment,employment_thousands,132,-1.2619,0.8409,,No
+RQ3 H3 Unemployment,unemployment_rate,132,-4.2484,0.0031,**,Yes
+RQ4 H4 GDP/Worker,hours_worked_millions,132,-3.6684,0.0201,*,Yes
+RQ5 H5 Hours Worked,hours_worked_millions,132,-3.6684,0.0201,*,Yes

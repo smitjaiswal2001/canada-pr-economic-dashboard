@@ -1,0 +1,21 @@
+Hypothesis,Outcome,Model,CV RMSE (mean),CV RMSE (std),CV R² (mean),CV R² (std),n_folds
+RQ1 H1 GDP,gdp_real_millions,OLS,3986.997,3165.801,-4.1154,5.5075,5
+RQ1 H1 GDP,gdp_real_millions,Ridge,3941.335,2218.602,-4.2904,4.3321,5
+RQ1 H1 GDP,gdp_real_millions,RF,5794.633,1453.459,-5.9385,4.0908,5
+RQ1 H1 GDP,gdp_real_millions,GBM,5970.916,2753.728,-5.116,2.9456,5
+RQ2 H2 Employment,employment_thousands,OLS,176.692,107.702,-0.6667,2.7505,5
+RQ2 H2 Employment,employment_thousands,Ridge,227.07,129.452,-1.409,3.2993,5
+RQ2 H2 Employment,employment_thousands,RF,540.624,98.428,-5.0211,4.1534,5
+RQ2 H2 Employment,employment_thousands,GBM,564.136,124.62,-5.8084,5.849,5
+RQ3 H3 Unemployment,unemployment_rate,OLS,0.181,0.102,0.7384,0.3779,5
+RQ3 H3 Unemployment,unemployment_rate,Ridge,0.345,0.179,0.4522,0.5387,5
+RQ3 H3 Unemployment,unemployment_rate,RF,0.557,0.287,-0.4467,1.5344,5
+RQ3 H3 Unemployment,unemployment_rate,GBM,0.52,0.231,-0.4245,1.4085,5
+RQ4 H4 Labour Productivity,labour_productivity_index,OLS,1.637,0.944,-25.2248,28.0217,4
+RQ4 H4 Labour Productivity,labour_productivity_index,Ridge,1.869,0.95,-46.1505,59.5749,4
+RQ4 H4 Labour Productivity,labour_productivity_index,RF,1.383,1.256,-5.6729,2.6974,4
+RQ4 H4 Labour Productivity,labour_productivity_index,GBM,1.312,1.274,-3.8226,1.7776,4
+RQ5 H5 Hours Worked,hours_worked_millions,OLS,95163.012,74714.077,-5.8201,5.789,5
+RQ5 H5 Hours Worked,hours_worked_millions,Ridge,86168.97,40514.685,-6.6702,7.7067,5
+RQ5 H5 Hours Worked,hours_worked_millions,RF,95725.736,38443.323,-5.839,4.7107,5
+RQ5 H5 Hours Worked,hours_worked_millions,GBM,103359.886,45593.663,-10.1271,12.9108,5

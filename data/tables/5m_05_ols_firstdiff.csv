@@ -1,0 +1,6 @@
+Hypothesis,Outcome,n,Coef ΔPR,SE,t,p-value,Sig,R²
+RQ1 H1 GDP,gdp_real_millions,131,0.1243,0.065092,1.91,0.0562,†,0.2743
+RQ2 H2 Employment,employment_thousands,131,0.012459,0.007088,1.758,0.0788,†,0.2672
+RQ3 H3 Unemployment,unemployment_rate,131,-2.6e-05,1.9e-05,-1.384,0.1665,,0.2454
+RQ4 H4 Labour Productivity,hours_worked_millions,131,2.392047,1.422376,1.682,0.0926,†,0.2564
+RQ5 H5 Hours Worked,hours_worked_millions,131,2.392047,1.422376,1.682,0.0926,†,0.2564

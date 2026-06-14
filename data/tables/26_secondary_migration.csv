@@ -1,0 +1,2 @@
+Model,β PR,p,Adj R²,n
+OLS: Outflow(t+1)~PR(t),0.0413,0.2603,-0.0073,90

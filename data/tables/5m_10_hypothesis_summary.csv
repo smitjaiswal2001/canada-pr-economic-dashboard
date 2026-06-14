@@ -1,0 +1,16 @@
+Hypothesis,Model,Outcome,p-value,Sig,Supported
+RQ1 H1 GDP,OLS Bivariate,gdp_real_millions,0.0,***,Yes
+RQ2 H2 Employment,OLS Bivariate,employment_thousands,0.0,***,Yes
+RQ3 H3 Unemployment,OLS Bivariate,unemployment_rate,0.0,***,Yes
+RQ4 H4 Labour Productivity,OLS Bivariate,hours_worked_millions,0.0,***,Yes
+RQ5 H5 Hours Worked,OLS Bivariate,hours_worked_millions,0.0,***,Yes
+RQ1 H1 GDP,OLS Multiple,gdp_real_millions,0.0006,***,Yes
+RQ2 H2 Employment,OLS Multiple,employment_thousands,0.0089,**,Yes
+RQ3 H3 Unemployment,OLS Multiple,unemployment_rate,0.0,***,Yes
+RQ4 H4 Labour Productivity,OLS Multiple,hours_worked_millions,0.0124,*,Yes
+RQ5 H5 Hours Worked,OLS Multiple,hours_worked_millions,0.0124,*,Yes
+RQ1 H1 GDP,OLS ΔFirst-Diff,gdp_real_millions,0.0562,†,No
+RQ2 H2 Employment,OLS ΔFirst-Diff,employment_thousands,0.0788,†,No
+RQ3 H3 Unemployment,OLS ΔFirst-Diff,unemployment_rate,0.1665,,No
+RQ4 H4 Labour Productivity,OLS ΔFirst-Diff,hours_worked_millions,0.0926,†,No
+RQ5 H5 Hours Worked,OLS ΔFirst-Diff,hours_worked_millions,0.0926,†,No

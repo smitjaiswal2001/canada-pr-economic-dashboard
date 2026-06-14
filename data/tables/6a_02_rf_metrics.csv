@@ -1,0 +1,6 @@
+Hypothesis,Outcome,OOB R²,Train R²,RMSE,n
+RQ1 H1 GDP,gdp_real_millions,0.992,0.9991,345.297,126
+RQ2 H2 Employment,employment_thousands,0.9939,0.9993,28.74,126
+RQ3 H3 Unemployment,unemployment_rate,0.9463,0.9937,0.073,126
+RQ4 H4 Labour Productivity,labour_productivity_index,0.9545,0.9943,0.124,114
+RQ5 H5 Hours Worked,hours_worked_millions,0.939,0.9936,10996.769,126

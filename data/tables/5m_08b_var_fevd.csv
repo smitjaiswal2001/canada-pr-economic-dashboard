@@ -1,0 +1,21 @@
+Outcome,Horizon (months),PR Explains (%)
+pr_admissions_national,1,100.0
+pr_admissions_national,3,94.72
+pr_admissions_national,6,94.48
+pr_admissions_national,12,94.47
+pr_admissions_national,24,94.47
+gdp_real_millions,1,7.52
+gdp_real_millions,3,5.68
+gdp_real_millions,6,5.65
+gdp_real_millions,12,5.65
+gdp_real_millions,24,5.65
+unemployment_rate,1,5.2
+unemployment_rate,3,4.45
+unemployment_rate,6,4.46
+unemployment_rate,12,4.46
+unemployment_rate,24,4.46
+hours_worked_millions,1,4.41
+hours_worked_millions,3,4.08
+hours_worked_millions,6,4.08
+hours_worked_millions,12,4.08
+hours_worked_millions,24,4.08

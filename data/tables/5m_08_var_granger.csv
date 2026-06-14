@@ -1,0 +1,4 @@
+Cause → Effect,F-stat,p-value,Sig,Lag
+ΔPR → Δgdp_real_millions,0.019,0.8916,,1
+ΔPR → Δunemployment_rate,0.005,0.9415,,1
+ΔPR → Δhours_worked_millions,0.029,0.8642,,1

@@ -1,0 +1,16 @@
+raw_file,status,output,rows,cols
+Average_Earnings_by_Industry_Table_14100206.csv,FILE_NOT_FOUND,—,0,0
+Consumer_Price_Index_18100004.csv,SUCCESS,cpi_monthly.csv,1144893,10
+Employment_&_Labour_Force_14100287.csv,SUCCESS,employment_labour_force_national.csv,5430564,14
+Housing_Starts_Quarterly_34100126.csv,SUCCESS,housing_starts_quarterly.csv,13134,11
+Interest_Rates_Bank_of_Canada_10100122.csv,SUCCESS,interest_rates_boc.csv,57401,10
+Job_Vacancies_&_Offered_Wages_Quarterly_14100325.csv,FILE_NOT_FOUND,—,0,0
+Job_vacancies_and_offered_wages_14100441.csv,SUCCESS,job_vacancies_wages_monthly.csv,13944,10
+Provincial_employment_and_unemployment_14100287.csv,FILE_NOT_FOUND,—,0,0
+Provincial_employment_by_industry_14100355.csv,FILE_NOT_FOUND,—,0,0
+Provincial_GDP_Statistics_Canada_36100222.csv,FILE_NOT_FOUND,—,0,0
+Provincial_labour_productivity_and_related_measures_36100480.csv,FILE_NOT_FOUND,—,0,0
+Hours_Worked_&_Productivity_36100480.csv,SUCCESS,hours_worked_productivity.csv,1440742,11
+00003050-Canada_-_Admissions_of_Permanent_Residents_by_ProvinceTerritory.csv,FILE_NOT_FOUND,—,0,0
+Permanent_Residents_–_Monthly_IRCC_Updates_EN_ODP-PR-ProvImmCat.csv,SUCCESS,ircc_pr_monthly_by_province_category.csv,10035,7
+00003051-Canada_Economic_Growth_Indicators_2015_-_2025.csv,FILE_NOT_FOUND,—,0,0

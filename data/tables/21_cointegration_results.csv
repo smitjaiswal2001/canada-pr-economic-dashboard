@@ -1,0 +1,6 @@
+RQ,n,EG t-stat,p-value,Sig,Cointegrated
+RQ1 GDP,132,-1.3795,0.8045,n.s.,No
+RQ2 Employment,132,-1.2619,0.8409,n.s.,No
+RQ3 Unemployment,132,-4.2484,0.0031,**,✓ Yes
+RQ4 Hours Worked,132,-3.6684,0.0201,*,✓ Yes
+Supp GDP/Worker,132,-2.0926,0.4802,n.s.,No

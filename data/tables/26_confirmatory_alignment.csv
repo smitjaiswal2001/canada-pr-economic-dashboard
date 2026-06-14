@@ -1,0 +1,40 @@
+Paper,Finding,Alignment,Cap_Result,Lit_Result,Align_Score
+"P01
+Akbari
+2018",RQ1 GDP (national),CONFIRMS,+β OLS M2 p<0.001,positive GDP effect,1
+"P01
+Akbari
+2018",RQ5 Provincial FE,CONFIRMS,FE p<0.001,varies by province,1
+"P02
+Erkisi
+2023",RQ2 Employment,CONFIRMS,+β OLS M2 p=0.009,skill immigration + employment,1
+"P02
+Erkisi
+2023",Class segmentation,CONFIRMS,Economic > Family > Refugee,high-skill > low-skill,1
+"P03
+Afzal
+2024",Supp GDP/Worker,CONFIRMS,+β OLS p=0.042,productivity positive,1
+"P04
+Borjas
+2019",RQ1 GDP elasticity,CONFIRMS,+0.044%,1.15% per 1% immigration,1
+"P05
+Kroft
+2026",RQ2 Employment,CONFIRMS,+β FE confirmed,+3.2% earnings post-PR,1
+"P06
+Doyle
+2025",RQ1 GDP aggregate,PARTIAL,"positive GDP, weak GDP/worker","GDP up, GDP/capita ambiguous",0
+"P07
+Zlenko
+2016",RQ1 GDP direction,DIVERGES,positive Canada,negative Russia,-1
+"P01
+Akbari
+2018",RQ3 Unemployment,CONFIRMS,FE negative p=0.002,labour market improvement,1
+"P02
+Erkisi
+2023",RQ4 Hours Worked,CONFIRMS,+β cointegrated,hours expand with immigration,1
+"P05
+Kroft
+2026",Bartik IV validity,CONFIRMS,F=316 strong inst.,causal employment channel,1
+"P04
+Borjas
+2019",Country-of-origin diversity,CONFIRMS,Top15 variation,skill composition matters,1

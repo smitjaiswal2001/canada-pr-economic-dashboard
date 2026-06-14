@@ -1,0 +1,3 @@
+Outcome,OLS β,OLS p,2SLS β (IV),2SLS p,Attenuation?
+Employment Rate,0.00032,0.0,0.000193,0.0,Yes
+Unemployment Rate,-0.000478,0.0,-0.000583,0.0,No

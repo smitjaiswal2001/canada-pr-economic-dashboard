@@ -1,0 +1,4 @@
+Hypothesis,Outcome,n,Coef PR,SE,t,p-value,Sig,R²
+RQ6 H6a Employment Rate (Province FE),dm_employment_rate,1319,0.000188,2.5e-05,7.409,0.0,***,0.4016
+RQ6 H6b Unemployment Rate (Province FE),dm_unemployment_rate,1319,-8.3e-05,2.6e-05,-3.172,0.0015,**,0.4068
+RQ6 H6c Participation Rate (Province FE),dm_participation_rate,1319,0.000143,1.8e-05,7.869,0.0,***,0.3982

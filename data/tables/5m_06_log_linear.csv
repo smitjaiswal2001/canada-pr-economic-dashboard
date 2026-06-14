@@ -1,0 +1,5 @@
+Hypothesis,Outcome,n,Elasticity,SE,t,p-value,Sig,R²
+RQ1 H1 GDP,ln(gdp_real_millions),132,0.0439,0.0147,2.982,0.0029,**,0.9637
+RQ2 H2 Employment,ln(employment_thousands),132,0.0386,0.0138,2.806,0.005,**,0.9463
+RQ4 H4 Labour Productivity,ln(hours_worked_millions),132,0.0614,0.0272,2.26,0.0238,*,0.8661
+RQ5 H5 Hours Worked,ln(hours_worked_millions),132,0.0614,0.0272,2.26,0.0238,*,0.8661

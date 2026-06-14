@@ -1,0 +1,6 @@
+Hypothesis,n_features,In-sample R²,CV R² (mean),CV RMSE (mean)
+RQ1 GDP,17,0.0704,-61.1887,13525.786
+RQ2 Employment,17,0.5975,-26.4839,1015.7925
+RQ3 Unemployment,17,1.0,-15.6027,1.5816
+RQ4 Hours Worked,17,-0.0041,-64.5624,176035.4784
+Supp GDP/Worker,17,0.9943,-4.6679,0.1247

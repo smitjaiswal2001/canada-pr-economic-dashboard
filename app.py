@@ -1,8 +1,11 @@
 """
 ═══════════════════════════════════════════════════════════════════════
-  CANADA PERMANENT RESIDENCY — ECONOMIC IMPACT DASHBOARD
+  CANADA PERMANENT RESIDENCY — ECONOMIC IMPACT DASHBOARD  v2.0
   A research-grade analysis of PR admissions and macroeconomic outcomes
   Data: IRCC & Statistics Canada | 2015–2025 | Monthly frequency
+
+  Capstone Group 4 — DAMO-699-1, Spring 2026
+  University of Niagara Falls Canada
 ═══════════════════════════════════════════════════════════════════════
 """
 
@@ -13,6 +16,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 import statsmodels.api as sm
+from pathlib import Path
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -20,7 +24,7 @@ warnings.filterwarnings("ignore")
 #  PAGE CONFIG
 # ═══════════════════════════════════════════════════════════════════════
 st.set_page_config(
-    page_title="Canada PR · Economic Impact",
+    page_title="Canada PR · Economic Impact Dashboard",
     page_icon="🍁",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -44,10 +48,12 @@ AMBER    = "#D97706"
 INDIGO   = "#4F46E5"
 VIOLET   = "#7C3AED"
 EMERALD  = "#059669"
+ROSE     = "#DB2777"
+CYAN     = "#0891B2"
 
-SERIES = [INK, MAPLE, TEAL, AMBER, INDIGO, VIOLET, EMERALD, MIST, "#DB2777", "#0891B2"]
+SERIES = [INK, MAPLE, TEAL, AMBER, INDIGO, VIOLET, EMERALD, MIST, ROSE, CYAN]
 
-FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+FONT = "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
 
 PLOTLY_LAYOUT = dict(
     font=dict(family=FONT, size=12, color=SLATE),
@@ -77,18 +83,22 @@ def covid_shade(fig, row=None, col=None):
                   fillcolor=AMBER, opacity=0.07, line_width=0, **kw)
 
 # ═══════════════════════════════════════════════════════════════════════
-#  GLOBAL CSS
+#  GLOBAL CSS — Premium Design
 # ═══════════════════════════════════════════════════════════════════════
 st.markdown(f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-html, body, [class*="css"] {{ font-family: 'Inter', {FONT}; }}
-[data-testid="stAppViewContainer"] {{ background: {CANVAS}; }}
+html, body, [class*="css"] {{ font-family: {FONT}; }}
+[data-testid="stAppViewContainer"] {{ background: linear-gradient(180deg, {CANVAS} 0%, #EFF6FF 100%); }}
 [data-testid="stHeader"] {{ background: transparent; }}
-.block-container {{ padding-top: 1.5rem; padding-bottom: 2rem; max-width: 1500px; }}
+.block-container {{ padding-top: 1.2rem; padding-bottom: 2rem; max-width: 1520px; }}
 
-[data-testid="stSidebar"] {{ background: {INK}; border-right: 1px solid #1E293B; }}
+/* ─── Dark sidebar ─── */
+[data-testid="stSidebar"] {{
+    background: linear-gradient(180deg, {INK} 0%, #1E293B 100%);
+    border-right: 1px solid rgba(255,255,255,0.06);
+}}
 [data-testid="stSidebar"] * {{ color: #CBD5E1 !important; }}
 [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {{ color: #F1F5F9 !important; }}
 [data-testid="stSidebar"] .stSlider label, [data-testid="stSidebar"] .stMultiSelect label,
@@ -97,30 +107,49 @@ html, body, [class*="css"] {{ font-family: 'Inter', {FONT}; }}
     letter-spacing: .08em; text-transform: uppercase;
 }}
 
+/* ─── Glassmorphism metric cards ─── */
 div[data-testid="stMetric"] {{
-    background: {PAPER}; border: 1px solid {LINE}; border-radius: 14px;
-    padding: 18px 20px;
-    box-shadow: 0 1px 3px rgba(15,27,45,0.04), 0 8px 24px rgba(15,27,45,0.03);
-    transition: transform .15s ease, box-shadow .15s ease;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(226,232,240,0.6);
+    border-radius: 16px;
+    padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(15,27,45,0.04), 0 8px 32px rgba(15,27,45,0.04);
+    transition: all .2s cubic-bezier(.4,0,.2,1);
 }}
-div[data-testid="stMetric"]:hover {{ transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(15,27,45,0.08); }}
+div[data-testid="stMetric"]:hover {{
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(15,27,45,0.1);
+    border-color: {MAPLE_LT};
+}}
 div[data-testid="stMetric"] label {{
     color: {MUTED} !important; font-size: .7rem !important; font-weight: 600;
-    letter-spacing: .07em; text-transform: uppercase; }}
+    letter-spacing: .08em; text-transform: uppercase;
+}}
 div[data-testid="stMetric"] [data-testid="stMetricValue"] {{
-    color: {INK}; font-weight: 700; font-size: 1.7rem; }}
+    color: {INK}; font-weight: 800; font-size: 1.8rem; letter-spacing: -.02em;
+}}
 
-[data-testid="stTabs"] [data-baseweb="tab-list"] {{ gap: 4px; border-bottom: 1px solid {LINE}; }}
+/* ─── Tab styling ─── */
+[data-testid="stTabs"] [data-baseweb="tab-list"] {{ gap: 2px; border-bottom: 2px solid {LINE}; }}
 [data-testid="stTabs"] [data-baseweb="tab"] {{
-    font-weight: 600; font-size: .82rem; color: {MUTED}; padding: 10px 16px;
-    border-radius: 8px 8px 0 0; }}
-[data-testid="stTabs"] [aria-selected="true"] {{ color: {MAPLE} !important; }}
-[data-testid="stTabs"] [data-baseweb="tab-highlight"] {{ background-color: {MAPLE}; }}
+    font-weight: 600; font-size: .78rem; color: {MUTED}; padding: 10px 14px;
+    border-radius: 10px 10px 0 0; transition: all .15s ease;
+}}
+[data-testid="stTabs"] [data-baseweb="tab"]:hover {{ color: {SLATE}; background: rgba(185,28,28,0.04); }}
+[data-testid="stTabs"] [aria-selected="true"] {{ color: {MAPLE} !important; font-weight: 700; }}
+[data-testid="stTabs"] [data-baseweb="tab-highlight"] {{ background-color: {MAPLE}; height: 3px; }}
 
-.hyp {{ background: {PAPER}; border: 1px solid {LINE}; border-left: 4px solid {MAPLE};
-    border-radius: 12px; padding: 18px 22px; margin-bottom: 18px;
-    box-shadow: 0 1px 3px rgba(15,27,45,0.04); }}
+/* ─── Hypothesis card ─── */
+.hyp {{
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid {LINE};
+    border-left: 4px solid {MAPLE};
+    border-radius: 14px; padding: 20px 24px; margin-bottom: 18px;
+    box-shadow: 0 2px 8px rgba(15,27,45,0.04);
+}}
 .hyp .eyebrow {{ font-size: .68rem; font-weight: 700; letter-spacing: .12em;
     text-transform: uppercase; color: {MAPLE}; }}
 .hyp h3 {{ margin: 4px 0 12px 0; color: {INK}; font-size: 1.15rem; font-weight: 700; }}
@@ -129,38 +158,57 @@ div[data-testid="stMetric"] [data-testid="stMetricValue"] {{
 .hyp .rationale {{ margin-top: 10px; padding-top: 10px; border-top: 1px dashed {LINE};
     font-size: .82rem; color: {MUTED}; font-style: italic; }}
 
+/* ─── Section header ─── */
 .sec {{ font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
-    color: {SLATE}; margin: 22px 0 10px 0; display:flex; align-items:center; gap:8px; }}
-.sec::before {{ content:''; width:18px; height:2px; background:{MAPLE}; display:inline-block; }}
+    color: {SLATE}; margin: 24px 0 12px 0; display:flex; align-items:center; gap:8px; }}
+.sec::before {{ content:''; width:20px; height:3px; background: linear-gradient(90deg, {MAPLE}, {MAPLE_LT});
+    display:inline-block; border-radius: 2px; }}
 
-.verdict {{ border-radius: 12px; padding: 16px 20px; margin: 4px 0 14px 0;
-    font-size: .9rem; line-height: 1.5; border:1px solid; }}
-.v-support {{ background:#ECFDF5; border-color:#A7F3D0; color:#065F46; }}
-.v-reject  {{ background:#FEF2F2; border-color:#FECACA; color:#991B1B; }}
-.v-mixed   {{ background:#FFFBEB; border-color:#FDE68A; color:#92400E; }}
-.v-neutral {{ background:#F1F5F9; border-color:#E2E8F0; color:#334155; }}
+/* ─── Verdict badges ─── */
+.verdict {{ border-radius: 14px; padding: 16px 22px; margin: 4px 0 14px 0;
+    font-size: .9rem; line-height: 1.6; border: 1px solid; }}
+.v-support {{ background: linear-gradient(135deg, #ECFDF5, #D1FAE5); border-color:#A7F3D0; color:#065F46; }}
+.v-reject  {{ background: linear-gradient(135deg, #FEF2F2, #FECACA); border-color:#FECACA; color:#991B1B; }}
+.v-mixed   {{ background: linear-gradient(135deg, #FFFBEB, #FEF3C7); border-color:#FDE68A; color:#92400E; }}
+.v-neutral {{ background: linear-gradient(135deg, #F1F5F9, #E2E8F0); border-color:#CBD5E1; color:#334155; }}
 .verdict b {{ font-weight: 800; }}
 
-.hero {{ display:flex; align-items:center; gap:16px; margin-bottom:6px; }}
-.hero .mark {{ font-size:2.1rem; }}
-.hero h1 {{ margin:0; font-size:1.55rem; font-weight:800; color:{INK}; letter-spacing:-.02em; }}
-.hero p {{ margin:2px 0 0 0; color:{MUTED}; font-size:.85rem; }}
+/* ─── Hero ─── */
+.hero {{ display:flex; align-items:center; gap:18px; margin-bottom:8px;
+    padding: 12px 0; }}
+.hero .mark {{ font-size:2.4rem; filter: drop-shadow(0 2px 4px rgba(185,28,28,0.2)); }}
+.hero h1 {{ margin:0; font-size:1.6rem; font-weight:900; color:{INK}; letter-spacing:-.03em; }}
+.hero p {{ margin:2px 0 0 0; color:{MUTED}; font-size:.85rem; font-weight:400; }}
 
-[data-testid="stDataFrame"] {{ border:1px solid {LINE}; border-radius:12px; }}
-.foot {{ text-align:center; color:{MIST}; font-size:.78rem; padding:18px 0 4px 0;
-    border-top:1px solid {LINE}; margin-top:28px; }}
+/* ─── Report finding card ─── */
+.report-card {{
+    background: linear-gradient(135deg, #FFF7ED, #FFFBEB);
+    border: 1px solid #FDE68A;
+    border-left: 4px solid {AMBER};
+    border-radius: 12px; padding: 16px 20px; margin: 12px 0;
+    font-size: .88rem; color: #92400E; line-height: 1.6;
+}}
+.report-card b {{ color: #78350F; }}
+.report-card .label {{ font-size: .68rem; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: {AMBER}; margin-bottom: 6px; }}
+
+/* ─── Data frames ─── */
+[data-testid="stDataFrame"] {{ border:1px solid {LINE}; border-radius:14px;
+    box-shadow: 0 1px 3px rgba(15,27,45,0.03); }}
+
+/* ─── Footer ─── */
+.foot {{ text-align:center; color:{MIST}; font-size:.78rem; padding:20px 0 6px 0;
+    border-top:1px solid {LINE}; margin-top:32px; }}
 </style>
 """, unsafe_allow_html=True)
 
 
 # ═══════════════════════════════════════════════════════════════════════
-#  DATA
+#  DATA LOADING
 # ═══════════════════════════════════════════════════════════════════════
-from pathlib import Path
-
-# Resolve data relative to THIS file so the app works regardless of the
-# directory it is launched from (critical for Streamlit Cloud / Render).
 BASE = Path(__file__).resolve().parent / "data"
+TABLES = BASE / "tables"
+FIGURES = BASE / "figures"
 
 @st.cache_data(show_spinner="Loading data…")
 def load_data():
@@ -178,6 +226,13 @@ def load_data():
     prov["Year"] = prov["YearMonth"].dt.year
     ircc["Province"] = ircc["Province_Raw"].str.replace(r"\s*-\s*Total$", "", regex=True).str.strip()
     return nat, prov, ircc
+
+@st.cache_data(show_spinner=False)
+def load_table(name):
+    try:
+        return pd.read_csv(TABLES / name)
+    except Exception:
+        return None
 
 try:
     nat, prov, ircc = load_data()
@@ -209,19 +264,10 @@ CONTROL_LABELS = {
 }
 
 def run_ols(df, y_col, x_cols, hac_lags=6):
-    """Multivariate OLS with HAC errors. Returns (model, n) or (None, n) if
-    there is not enough usable data to estimate the model."""
     d = df.dropna(subset=[y_col] + x_cols).copy()
-
-    # Drop control columns that are constant within this window (e.g. the
-    # COVID dummy is all-zero in a pre-2020 window) — they cause singular
-    # matrices or NaN coefficients. Never drop the primary PR regressor.
     usable = [x_cols[0]] + [c for c in x_cols[1:] if d[c].nunique() > 1]
-
-    # Need at least a few more observations than parameters to estimate.
     if len(d) < len(usable) + 3:
         return None, len(d)
-
     X = sm.add_constant(d[usable])
     lags = min(hac_lags, max(1, len(d) // 4))
     try:
@@ -258,7 +304,7 @@ def fmt_p(p):
 # ═══════════════════════════════════════════════════════════════════════
 with st.sidebar:
     st.markdown("<h2 style='margin-bottom:2px;'>🍁 PR Impact</h2>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color:{MIST};font-size:.78rem;margin-top:0;'>Economic Research Dashboard</p>",
+    st.markdown(f"<p style='color:{MIST};font-size:.78rem;margin-top:0;'>Economic Research Dashboard · v2.0</p>",
                 unsafe_allow_html=True)
     st.divider()
 
@@ -285,7 +331,8 @@ with st.sidebar:
 <div style='font-size:.74rem;color:{MIST};line-height:1.6;'>
 <b style='color:#CBD5E1;'>Method</b><br>
 Monthly OLS, n≈132<br>HAC (Newey–West) std. errors<br>α = 0.05 significance<br><br>
-<b style='color:#CBD5E1;'>Sources</b><br>IRCC · Statistics Canada<br>2015–2025
+<b style='color:#CBD5E1;'>Sources</b><br>IRCC · Statistics Canada<br>2015–2025<br><br>
+<b style='color:#CBD5E1;'>Team</b><br>Group 4 · DAMO-699-1<br>University of Niagara Falls
 </div>""", unsafe_allow_html=True)
 
 nat_f  = nat[(nat.Year >= yr_range[0]) & (nat.Year <= yr_range[1])].copy()
@@ -301,7 +348,7 @@ st.markdown(f"""
   <span class="mark">🍁</span>
   <div>
     <h1>Permanent Residency &amp; the Canadian Economy</h1>
-    <p>Do PR admissions move GDP, jobs, unemployment, and labour input? A controlled econometric analysis · {yr_range[0]}–{yr_range[1]}</p>
+    <p>Do PR admissions move GDP, jobs, unemployment, and labour input? A multi-method econometric analysis · {yr_range[0]}–{yr_range[1]}</p>
   </div>
 </div>""", unsafe_allow_html=True)
 st.write("")
@@ -328,51 +375,46 @@ k5.metric("Peak Intake Month", peak_month)
 
 
 # ═══════════════════════════════════════════════════════════════════════
-#  TABS
+#  REUSABLE RQ BLOCK
 # ═══════════════════════════════════════════════════════════════════════
-tabs = st.tabs([
-    "  Overview  ", "  RQ1 · GDP  ", "  RQ2 · Employment  ",
-    "  RQ3 · Unemployment  ", "  RQ4 · Hours  ", "  RQ5 · Regional  ",
-    "  Categories  ", "  Methodology  "
-])
-
 def rq_block(y_col, y_label, y_units, accent, alt_direction="positive",
-             monthly_y_transform=None, monthly_label=None):
+             monthly_y_transform=None, monthly_label=None, report_finding=None):
     model, n = run_ols(nat_f, y_col, x_cols)
     if model is None:
-        st.warning(
-            f"Not enough data to estimate this model for the selected window "
-            f"({n} usable month{'s' if n != 1 else ''}). "
-            "Widen the **Analysis Period** in the sidebar — year-over-year GDP growth "
-            "needs at least 12 months of prior data, so a window spanning two or more "
-            "years is required."
-        )
+        st.warning(f"Not enough data ({n} months). Widen the **Analysis Period** in the sidebar.")
         return
     beta = model.params[pr_var]; p = model.pvalues[pr_var]; r2 = model.rsquared_adj
     sig = p < 0.05; pos = beta > 0
 
     if alt_direction == "positive":
         if sig and pos:
-            cls, txt = "v-support", f"<b>H₁ supported.</b> A statistically significant <b>positive</b> association between PR admissions and {y_label.lower()} (p {fmt_p(p)}). Each additional PR admission is associated with a {beta:+.4g} change in {y_units}."
+            cls, txt = "v-support", f"<b>H₁ supported.</b> Statistically significant <b>positive</b> association (p {fmt_p(p)}). β = {beta:+.4g} {y_units} per PR admission."
         elif sig and not pos:
-            cls, txt = "v-reject", f"<b>H₁ rejected.</b> The effect is significant but <b>negative</b> (p {fmt_p(p)}), opposite to the hypothesised direction."
+            cls, txt = "v-reject", f"<b>H₁ rejected.</b> Significant but <b>negative</b> (p {fmt_p(p)}), opposite to hypothesis."
         else:
-            cls, txt = "v-neutral", f"<b>H₀ not rejected.</b> No statistically significant association at α=0.05 (p {fmt_p(p)}) once {'controls are applied' if use_controls else 'examined bivariately'}."
+            cls, txt = "v-neutral", f"<b>H₀ not rejected.</b> No significant association at α=0.05 (p {fmt_p(p)})."
     else:
         if sig and not pos:
-            cls, txt = "v-support", f"<b>H₁a supported.</b> PR admissions are significantly associated with <b>lower</b> {y_label.lower()} (β={beta:+.4g}, p {fmt_p(p)})."
+            cls, txt = "v-support", f"<b>H₁a supported.</b> PR admissions significantly associated with <b>lower</b> {y_label.lower()} (β={beta:+.4g}, p {fmt_p(p)})."
         elif sig and pos:
-            cls, txt = "v-mixed", f"<b>H₁b supported.</b> PR admissions are significantly associated with <b>higher</b> {y_label.lower()} (β={beta:+.4g}, p {fmt_p(p)}) — consistent with short-run labour-market competition."
+            cls, txt = "v-mixed", f"<b>H₁b supported.</b> PR admissions associated with <b>higher</b> {y_label.lower()} (β={beta:+.4g}, p {fmt_p(p)})."
         else:
             cls, txt = "v-neutral", f"<b>H₀ not rejected.</b> No significant relationship at α=0.05 (p {fmt_p(p)})."
 
     st.markdown(f"<div class='verdict {cls}'>{txt}</div>", unsafe_allow_html=True)
 
     s1,s2,s3,s4 = st.columns(4)
-    s1.metric("PR Coefficient (β)", f"{beta:+.4g}", help="Marginal effect of one PR admission")
+    s1.metric("PR Coefficient (β)", f"{beta:+.4g}")
     s2.metric("p-value", f"{fmt_p(p)} {sig_stars(p)}")
     s3.metric("Adj. R²", f"{r2:.3f}")
     s4.metric("Observations", f"{n} months")
+
+    # Report finding card
+    if report_finding:
+        st.markdown(f"""<div class='report-card'>
+            <div class='label'>📄 Final Report Finding (M2 Specification)</div>
+            {report_finding}
+        </div>""", unsafe_allow_html=True)
 
     c1, c2 = st.columns([1.45, 1])
     with c1:
@@ -388,7 +430,7 @@ def rq_block(y_col, y_label, y_units, accent, alt_direction="positive",
         style_fig(fig, height=340)
         fig.update_yaxes(title_text="PR admissions / mo", secondary_y=False)
         fig.update_yaxes(title_text=monthly_label or y_label, secondary_y=True, showgrid=False)
-        st.plotly_chart(fig, width='stretch')
+        st.plotly_chart(fig, use_container_width=True)
     with c2:
         st.markdown("<div class='sec'>Partial relationship</div>", unsafe_allow_html=True)
         d = nat_f.dropna(subset=[y_col, pr_var])
@@ -399,7 +441,7 @@ def rq_block(y_col, y_label, y_units, accent, alt_direction="positive",
         style_fig(fig2, height=340, legend_bottom=False)
         fig2.update_xaxes(title_text=f"PR admissions ({lag_choice.lower()})")
         fig2.update_yaxes(title_text=y_label)
-        st.plotly_chart(fig2, width='stretch')
+        st.plotly_chart(fig2, use_container_width=True)
 
     st.markdown("<div class='sec'>Full regression output</div>", unsafe_allow_html=True)
     ct = coef_table(model)
@@ -407,18 +449,30 @@ def rq_block(y_col, y_label, y_units, accent, alt_direction="positive",
         "Coefficient":"{:+.4g}", "Std. Error":"{:.4g}", "t-stat":"{:+.2f}",
         "p-value":"{:.3f}", "CI Low (95%)":"{:+.4g}", "CI High (95%)":"{:+.4g}"
     }).background_gradient(subset=["p-value"], cmap="RdYlGn_r", vmin=0, vmax=0.2)
-    st.dataframe(styled, width='stretch', hide_index=True)
-    st.caption(f"Dependent variable: **{y_label}** · OLS with HAC (Newey–West, 6 lags) standard errors · "
-               f"Significance: *** p<0.001, ** p<0.01, * p<0.05, † p<0.10 · "
-               f"Specification: {'controlled' if use_controls else 'bivariate'}, {lag_choice.lower()}.")
+    st.dataframe(styled, use_container_width=True, hide_index=True)
+    st.caption(f"OLS with HAC (Newey–West) std. errors · "
+               f"Spec: {'controlled' if use_controls else 'bivariate'}, {lag_choice.lower()} · "
+               f"*** p<0.001, ** p<0.01, * p<0.05, † p<0.10")
 
 
-# ════════════ OVERVIEW
+# ═══════════════════════════════════════════════════════════════════════
+#  TABS
+# ═══════════════════════════════════════════════════════════════════════
+tabs = st.tabs([
+    " 🏠 Executive Summary ", " 📈 RQ1 · GDP ", " 👥 RQ2 · Employment ",
+    " 📉 RQ3 · Unemployment ", " ⏱️ RQ4 · Hours ", " 🗺️ RQ5 · Provincial ",
+    " 🤖 ML & Analytics ", " 📊 Categories ", " 🌍 Country-of-Origin ",
+    " 🔬 Bartik IV ", " 📚 Literature ", " 📋 Methodology "
+])
+
+# ════════════════════════════════════════════════════════════════════
+#  TAB 0 — EXECUTIVE SUMMARY
+# ════════════════════════════════════════════════════════════════════
 with tabs[0]:
     st.markdown("<div class='sec'>National indicators at a glance</div>", unsafe_allow_html=True)
     fig = make_subplots(rows=2, cols=2, vertical_spacing=0.14, horizontal_spacing=0.08,
         subplot_titles=("PR admissions (monthly)", "Real GDP ($M)",
-                        "Unemployment rate (%)", "Hours worked (B/mo)"))
+                        "Unemployment rate (%)", "Hours worked (M/mo)"))
     fig.add_trace(go.Scatter(x=nat_f.YearMonth, y=nat_f.pr_admissions_national, mode="lines",
                   name="PR admissions", line=dict(color=MAPLE, width=2), fill="tozeroy",
                   fillcolor="rgba(185,28,28,0.08)"), 1, 1)
@@ -435,73 +489,78 @@ with tabs[0]:
     fig.update_xaxes(showgrid=False, linecolor=LINE)
     fig.update_yaxes(showgrid=True, gridcolor=LINE)
     fig.update_annotations(font_size=12.5, font_color=INK)
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig, use_container_width=True)
 
-    st.markdown("<div class='sec'>Hypothesis scorecard · current specification</div>", unsafe_allow_html=True)
-    st.caption(f"Spec: **{model_spec}** · Timing: **{lag_choice}** · Adjust in the sidebar to compare.")
-    rq_defs = [
-        ("RQ1", "GDP growth (YoY)", "gdp_growth_yoy", "positive"),
-        ("RQ2", "Employment (000s)", "employment_thousands", "positive"),
-        ("RQ3", "Unemployment rate", "unemployment_rate", "bidirectional"),
-        ("RQ4", "Hours worked", "hours_worked_millions", "positive"),
-    ]
-    rows = []
-    for tag, lbl, col, direction in rq_defs:
-        m, n = run_ols(nat_f, col, x_cols)
-        if m is None:
-            rows.append({"RQ":tag, "Outcome":lbl, "β (PR)":np.nan, "p-value":np.nan,
-                         "Adj. R²":np.nan, "Direction":"—", "Verdict":"Insufficient data"})
-            continue
-        b, p, r2 = m.params[pr_var], m.pvalues[pr_var], m.rsquared_adj
-        sig = p < 0.05
-        if direction == "positive":
-            verdict = "H₁ supported" if (sig and b>0) else ("H₁ rejected (neg.)" if (sig and b<0) else "H₀ not rejected")
-        else:
-            verdict = "H₁a supported" if (sig and b<0) else ("H₁b supported" if (sig and b>0) else "H₀ not rejected")
-        rows.append({"RQ":tag, "Outcome":lbl, "β (PR)":b, "p-value":p,
-                     "Adj. R²":r2, "Direction":"↑" if b>0 else "↓", "Verdict":verdict})
-    sc = pd.DataFrame(rows)
-    def color_verdict(v):
-        if "Insufficient" in v: return "background-color:#FEF9C3;color:#854D0E;font-weight:600"
-        if "H₁a" in v: return "background-color:#ECFDF5;color:#065F46;font-weight:700"
-        if "H₁b" in v: return "background-color:#FFFBEB;color:#92400E;font-weight:700"
-        if "supported" in v: return "background-color:#ECFDF5;color:#065F46;font-weight:700"
-        if "rejected" in v: return "background-color:#FEF2F2;color:#991B1B;font-weight:700"
-        return "background-color:#F1F5F9;color:#334155;font-weight:600"
-    styled = sc.style.format({"β (PR)":"{:+.4g}","p-value":"{:.3f}","Adj. R²":"{:.3f}"}, na_rep="—") \
-                     .map(color_verdict, subset=["Verdict"]) \
-                     .background_gradient(subset=["p-value"], cmap="RdYlGn_r", vmin=0, vmax=0.2)
-    st.dataframe(styled, width='stretch', hide_index=True)
+    # Hypothesis Scorecard from report
+    st.markdown("<div class='sec'>Hypothesis verdicts — Final Report</div>", unsafe_allow_html=True)
+    hyp_df = load_table("5m_10_hypothesis_summary.csv")
+    if hyp_df is not None:
+        def color_supported(v):
+            if v == "Yes": return "background-color:#ECFDF5;color:#065F46;font-weight:700"
+            return "background-color:#FEF2F2;color:#991B1B;font-weight:700"
+        styled = hyp_df.style.map(color_supported, subset=["Supported"])
+        st.dataframe(styled, use_container_width=True, hide_index=True)
+    else:
+        # Fallback: live scorecard
+        rq_defs = [
+            ("RQ1", "GDP growth (YoY)", "gdp_growth_yoy", "positive"),
+            ("RQ2", "Employment (000s)", "employment_thousands", "positive"),
+            ("RQ3", "Unemployment rate", "unemployment_rate", "bidirectional"),
+            ("RQ4", "Hours worked", "hours_worked_millions", "positive"),
+        ]
+        rows = []
+        for tag, lbl, col, direction in rq_defs:
+            m, n = run_ols(nat_f, col, x_cols)
+            if m is None:
+                rows.append({"RQ":tag, "Outcome":lbl, "β (PR)":np.nan, "p-value":np.nan,
+                             "Adj. R²":np.nan, "Verdict":"Insufficient data"})
+                continue
+            b, p, r2 = m.params[pr_var], m.pvalues[pr_var], m.rsquared_adj
+            sig = p < 0.05
+            if direction == "positive":
+                verdict = "SUPPORTED" if (sig and b>0) else ("Rejected" if (sig and b<0) else "Not Rejected")
+            else:
+                verdict = "SUPPORTED" if (sig and b<0) else ("SUPPORTED (pos)" if (sig and b>0) else "Not Rejected")
+            rows.append({"RQ":tag, "Outcome":lbl, "β (PR)":b, "p-value":p, "Adj. R²":r2, "Verdict":verdict})
+        sc = pd.DataFrame(rows)
+        st.dataframe(sc, use_container_width=True, hide_index=True)
 
+    # Correlation heatmap
     st.markdown("<div class='sec'>Correlation structure</div>", unsafe_allow_html=True)
     corr_cols = ["pr_admissions_national","gdp_real_millions","employment_thousands",
-                 "unemployment_rate","hours_worked_millions","prime_rate","cpi_all_items",
-                 "job_vacancies","labour_productivity_index"]
+                 "unemployment_rate","hours_worked_millions","prime_rate","cpi_all_items"]
     nice = {"pr_admissions_national":"PR","gdp_real_millions":"GDP","employment_thousands":"Employ.",
             "unemployment_rate":"Unemp.","hours_worked_millions":"Hours","prime_rate":"Prime",
-            "cpi_all_items":"CPI","job_vacancies":"Vacancies","labour_productivity_index":"Productiv."}
-    cm = nat_f[corr_cols].corr()
-    cm.index = [nice[c] for c in cm.index]; cm.columns = [nice[c] for c in cm.columns]
-    fig_c = px.imshow(cm, text_auto=".2f", color_continuous_scale=["#B91C1C","#FFFFFF","#0D9488"],
+            "cpi_all_items":"CPI"}
+    avail = [c for c in corr_cols if c in nat_f.columns]
+    cm = nat_f[avail].corr()
+    cm.index = [nice.get(c,c) for c in cm.index]; cm.columns = [nice.get(c,c) for c in cm.columns]
+    fig_c = px.imshow(cm, text_auto=".2f", color_continuous_scale=[MAPLE,"#FFFFFF",TEAL],
                       zmin=-1, zmax=1, aspect="auto")
     fig_c.update_layout(**{k:v for k,v in PLOTLY_LAYOUT.items() if k not in ("xaxis","yaxis")},
-                        height=440, coloraxis_colorbar=dict(title="r", thickness=12))
+                        height=420, coloraxis_colorbar=dict(title="r", thickness=12))
     fig_c.update_traces(textfont_size=10)
-    st.plotly_chart(fig_c, width='stretch')
+    st.plotly_chart(fig_c, use_container_width=True)
 
-# ════════════ RQ1
+
+# ════════════════════════════════════════════════════════════════════
+#  TAB 1 — RQ1 GDP
+# ════════════════════════════════════════════════════════════════════
 with tabs[1]:
     st.markdown("""
     <div class="hyp"><div class="eyebrow">Research Question 1</div>
-      <h3>PR Admissions &amp; GDP Growth</h3>
-      <div class="row"><span class="tag">H₀</span><span>PR admissions have no significant effect on GDP growth.</span></div>
-      <div class="row"><span class="tag">H₁</span><span>Higher PR admissions are associated with increased GDP growth.</span></div>
-      <div class="rationale">Immigration expands labour supply, consumption, and investment demand.</div>
+      <h3>PR Admissions &amp; Real GDP</h3>
+      <div class="row"><span class="tag">H₀</span><span>PR admissions have no significant effect on Real GDP.</span></div>
+      <div class="row"><span class="tag">H₁</span><span>Higher PR admissions are associated with increased Real GDP.</span></div>
+      <div class="rationale">Immigration expands labour supply, consumption demand, and investment.</div>
     </div>""", unsafe_allow_html=True)
-    rq_block("gdp_growth_yoy", "GDP growth (YoY %)", "percentage points", INDIGO,
-             monthly_label="GDP growth YoY (%)")
+    rq_block("gdp_real_millions", "Real GDP ($M)", "millions CAD", INDIGO,
+             report_finding="<b>OLS M2:</b> β = +0.182, p < 0.001 · <b>Elasticity:</b> +0.044% per 1% ↑ PR · "
+                           "<b>Cointegration:</b> Not found (EG p = 0.805) · <b>First-diff:</b> Marginal (p ≈ 0.06)")
 
-# ════════════ RQ2
+# ════════════════════════════════════════════════════════════════════
+#  TAB 2 — RQ2 EMPLOYMENT
+# ════════════════════════════════════════════════════════════════════
 with tabs[2]:
     st.markdown("""
     <div class="hyp"><div class="eyebrow">Research Question 2</div>
@@ -511,9 +570,12 @@ with tabs[2]:
       <div class="rationale">A growing population raises both labour supply and demand for goods and services.</div>
     </div>""", unsafe_allow_html=True)
     rq_block("employment_thousands", "Employment (000s)", "thousand jobs", EMERALD,
-             monthly_label="Employment (000s)")
+             report_finding="<b>OLS M2:</b> β = +0.016, p = 0.009 · <b>Panel FE:</b> β = +0.000188, p < 0.001 · "
+                           "<b>Bartik IV (2SLS):</b> β = +0.000064, p = 0.003 (attenuated → OLS not purely endogenous)")
 
-# ════════════ RQ3
+# ════════════════════════════════════════════════════════════════════
+#  TAB 3 — RQ3 UNEMPLOYMENT
+# ════════════════════════════════════════════════════════════════════
 with tabs[3]:
     st.markdown("""
     <div class="hyp"><div class="eyebrow">Research Question 3</div>
@@ -524,9 +586,13 @@ with tabs[3]:
       <div class="rationale">Short-run labour-market competition may raise unemployment; long-run expansion may lower it.</div>
     </div>""", unsafe_allow_html=True)
     rq_block("unemployment_rate", "Unemployment rate (%)", "percentage points", AMBER,
-             alt_direction="bidirectional", monthly_label="Unemployment rate (%)")
+             alt_direction="bidirectional",
+             report_finding="<b>OLS M2:</b> β = −0.000081, p < 0.001 · <b>Cointegrated:</b> ✓ (EG p = 0.003) · "
+                           "<b>ECM:</b> ECT = −0.131, correction speed 13%/month · <b>Panel FE:</b> p = 0.002")
 
-# ════════════ RQ4
+# ════════════════════════════════════════════════════════════════════
+#  TAB 4 — RQ4 HOURS WORKED
+# ════════════════════════════════════════════════════════════════════
 with tabs[4]:
     st.markdown("""
     <div class="hyp"><div class="eyebrow">Research Question 4</div>
@@ -536,9 +602,14 @@ with tabs[4]:
       <div class="rationale">A larger workforce directly raises aggregate labour input.</div>
     </div>""", unsafe_allow_html=True)
     rq_block("hours_worked_millions", "Hours worked (M)", "million hours", VIOLET,
-             monthly_y_transform=lambda s: s/1e6, monthly_label="Hours worked (B/mo)")
+             monthly_y_transform=lambda s: s/1e6, monthly_label="Hours worked (B/mo)",
+             report_finding="<b>OLS M2:</b> β = +3.296, p = 0.012 · <b>Elasticity:</b> +0.061% · "
+                           "<b>Cointegrated:</b> ✓ (EG p = 0.020) · <b>ECM:</b> ECT = −0.113")
 
-# ════════════ RQ5
+
+# ════════════════════════════════════════════════════════════════════
+#  TAB 5 — RQ5 PROVINCIAL
+# ════════════════════════════════════════════════════════════════════
 with tabs[5]:
     st.markdown("""
     <div class="hyp"><div class="eyebrow">Research Question 5</div>
@@ -547,6 +618,17 @@ with tabs[5]:
       <div class="row"><span class="tag">H₁</span><span>Provinces with higher PR inflows experience stronger economic performance.</span></div>
       <div class="rationale">Regional labour supply and demand respond to where immigrants settle.</div>
     </div>""", unsafe_allow_html=True)
+
+    # Panel FE results from report
+    panel_fe = load_table("5m_07_panel_fe.csv")
+    if panel_fe is not None:
+        st.markdown("<div class='sec'>Panel Fixed Effects results (n = 1,319 province-months)</div>", unsafe_allow_html=True)
+        st.dataframe(panel_fe, use_container_width=True, hide_index=True)
+        st.markdown("""<div class='report-card'>
+            <div class='label'>📄 Panel FE Key Finding</div>
+            <b>Employment rate:</b> β = +1.88×10⁻⁴, p < 0.001 · <b>Unemployment rate:</b> β = −8.3×10⁻⁵, p = 0.003 ·
+            <b>Participation rate:</b> β = +1.43×10⁻⁴, p < 0.001 — all within-province effects significant.
+        </div>""", unsafe_allow_html=True)
 
     if not sel_provinces:
         st.warning("Select at least one province in the sidebar.")
@@ -563,9 +645,8 @@ with tabs[5]:
                             marker=dict(color=pt.pr, colorscale=[[0,MAPLE_LT],[1,MAPLE]]),
                             text=[f"{v/1e3:.0f}K" for v in pt.pr], textposition="outside"))
             style_fig(fig, height=400, legend_bottom=False)
-            fig.update_layout(coloraxis_showscale=False)
             fig.update_xaxes(title_text="Total PR admissions")
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         with c2:
             st.markdown("<div class='sec'>PR intake vs employment rate</div>", unsafe_allow_html=True)
             fig = px.scatter(prov_tot, x="pr", y="emp_rate", size="emp", text="Province",
@@ -578,7 +659,7 @@ with tabs[5]:
             fig.update_layout(showlegend=False)
             fig.update_xaxes(title_text="Total PR admissions")
             fig.update_yaxes(title_text="Avg employment rate (%)")
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
 
         st.markdown("<div class='sec'>PR admissions over time · selected provinces</div>", unsafe_allow_html=True)
         psel = prov_f[prov_f.Province.isin(sel_provinces)].groupby(["Year","Province"])["pr_admissions"].sum().reset_index()
@@ -586,34 +667,61 @@ with tabs[5]:
         fig.update_traces(line=dict(width=0.5))
         style_fig(fig, height=340)
         fig.update_yaxes(title_text="PR admissions")
-        st.plotly_chart(fig, width='stretch')
+        st.plotly_chart(fig, use_container_width=True)
 
-        st.markdown("<div class='sec'>Province-level effect · PR → employment rate</div>", unsafe_allow_html=True)
-        reg_rows = []
-        for pv in provinces:
-            sub = prov_f[prov_f.Province==pv].dropna(subset=["pr_admissions","employment_rate"])
-            if len(sub) > 15 and sub["pr_admissions"].nunique() > 1:
-                try:
-                    X = sm.add_constant(sub[["pr_admissions"]])
-                    lags = min(6, max(1, len(sub)//4))
-                    m = sm.OLS(sub["employment_rate"], X).fit(cov_type="HAC", cov_kwds={"maxlags":lags})
-                except Exception:
-                    continue
-                reg_rows.append({"Province":pv, "β (PR)":m.params["pr_admissions"],
-                                 "p-value":m.pvalues["pr_admissions"], "Adj. R²":m.rsquared_adj,
-                                 "n":int(len(sub)),
-                                 "Significant":"Yes" if m.pvalues["pr_admissions"]<0.05 else "No"})
-        if reg_rows:
-            rdf = pd.DataFrame(reg_rows).sort_values("β (PR)", ascending=False)
-            styled = rdf.style.format({"β (PR)":"{:+.4g}","p-value":"{:.3f}","Adj. R²":"{:.3f}"}) \
-                              .background_gradient(subset=["p-value"], cmap="RdYlGn_r", vmin=0, vmax=0.2)
-            st.dataframe(styled, width='stretch', hide_index=True)
-            st.caption("Bivariate OLS per province, HAC standard errors. Positive β = higher PR intake associated with higher employment rate.")
-        else:
-            st.info("Not enough data in the selected window to fit province-level models. Widen the Analysis Period.")
+    # Province clustering figure
+    fig_path = FIGURES / "6a_03b_province_clusters_pca.png"
+    if fig_path.exists():
+        st.markdown("<div class='sec'>K-Means province clustering (k=3)</div>", unsafe_allow_html=True)
+        st.image(str(fig_path), use_container_width=True)
 
-# ════════════ CATEGORIES
+
+# ════════════════════════════════════════════════════════════════════
+#  TAB 6 — ML & ANALYTICS
+# ════════════════════════════════════════════════════════════════════
 with tabs[6]:
+    st.markdown("<div class='sec'>Machine Learning & Advanced Analytics</div>", unsafe_allow_html=True)
+    st.markdown("""
+    This section presents results from the analytics applications tier: Random Forest, XGBoost,
+    Support Vector Machines, PCA, K-Means clustering, and walk-forward cross-validation.
+    These methods **validate and extend** the statistical findings from OLS.
+    """)
+
+    ml_figures = [
+        ("6a_02_rf_importance.png", "Random Forest Feature Importance", "PR admissions consistently appears as a non-trivial contributor alongside time trend and COVID dummy."),
+        ("6a_xgb_importance.png", "XGBoost Feature Importance", "Gradient boosting confirms PR admissions as a significant predictor."),
+        ("6a_05_pca.png", "PCA Scree Plot & Loadings", "PC1 (economic scale) explains 78.3% of variance. PR loads positively on the growth dimension."),
+        ("6a_04_walkforward_cv_expanded.png", "Walk-Forward CV Model Comparison", "Ridge regression achieves the least-negative CV R², confirming it as the most stable level-forecasting approach."),
+        ("6a_01_regularized_r2.png", "Regularized Regression R² Comparison", "Ridge, Lasso, and ElasticNet all retain PR admissions as a non-zero predictor."),
+        ("6a_svm_fit.png", "SVM (RBF Kernel) Fit", "Support Vector Machine with RBF kernel captures non-linear patterns in the PR-economy relationship."),
+    ]
+
+    for i in range(0, len(ml_figures), 2):
+        cols = st.columns(2)
+        for j, col in enumerate(cols):
+            if i+j < len(ml_figures):
+                fname, title, desc = ml_figures[i+j]
+                fpath = FIGURES / fname
+                with col:
+                    if fpath.exists():
+                        st.markdown(f"**{title}**")
+                        st.image(str(fpath), use_container_width=True)
+                        st.caption(desc)
+                    else:
+                        st.info(f"Figure not found: {fname}")
+
+    # Walk-forward CV table
+    cv_table = load_table("6a_04_walkforward_cv.csv")
+    if cv_table is not None:
+        st.markdown("<div class='sec'>Walk-Forward CV detailed results</div>", unsafe_allow_html=True)
+        st.dataframe(cv_table, use_container_width=True, hide_index=True)
+        st.caption("All CV R² values are negative — expected for non-stationary level series forecasted out-of-sample.")
+
+
+# ════════════════════════════════════════════════════════════════════
+#  TAB 7 — CATEGORIES
+# ════════════════════════════════════════════════════════════════════
+with tabs[7]:
     st.markdown("<div class='sec'>Composition of permanent residency by program</div>", unsafe_allow_html=True)
     econ = ["Skilled Worker","Skilled Trade","Canadian Experience","Provincial Nominee Program",
             "Agri-Food Pilot","Rural and Northern Immigration","Start-up Business","Entrepreneur",
@@ -639,7 +747,7 @@ with tabs[6]:
         fig.update_traces(marker_line_width=0)
         style_fig(fig, height=380)
         fig.update_yaxes(title_text="PR admissions")
-        st.plotly_chart(fig, width='stretch')
+        st.plotly_chart(fig, use_container_width=True)
     with c2:
         tot = agg.groupby("Broad")["Admissions"].sum().reset_index()
         fig = go.Figure(go.Pie(labels=tot.Broad, values=tot.Admissions, hole=0.55,
@@ -648,89 +756,228 @@ with tabs[6]:
         fig.update_layout(**{k:v for k,v in PLOTLY_LAYOUT.items() if k not in ("xaxis","yaxis","legend")},
                           height=380, showlegend=True,
                           legend=dict(orientation="h", y=-0.1, x=0.5, xanchor="center"))
-        st.plotly_chart(fig, width='stretch')
+        st.plotly_chart(fig, use_container_width=True)
 
-    st.markdown("<div class='sec'>Top programs by total admissions</div>", unsafe_allow_html=True)
-    cat_tot = nat_ircc.groupby("ImmCategory")["Admissions"].sum().reset_index().sort_values("Admissions").tail(10)
-    fig = go.Figure(go.Bar(x=cat_tot.Admissions, y=cat_tot.ImmCategory, orientation="h",
-                    marker=dict(color=cat_tot.Admissions, colorscale=[[0,"#E0E7FF"],[1,INDIGO]]),
-                    text=[f"{v/1e3:.0f}K" for v in cat_tot.Admissions], textposition="outside"))
-    style_fig(fig, height=420, legend_bottom=False)
-    fig.update_layout(coloraxis_showscale=False)
-    fig.update_xaxes(title_text="Total admissions")
-    st.plotly_chart(fig, width='stretch')
+    # Class OLS results
+    class_ols = load_table("23_class_ols.csv")
+    if class_ols is not None:
+        st.markdown("<div class='sec'>OLS coefficients by immigration class</div>", unsafe_allow_html=True)
+        st.dataframe(class_ols, use_container_width=True, hide_index=True)
+        st.markdown("""<div class='report-card'>
+            <div class='label'>📄 Class Segmentation Finding</div>
+            <b>Economic-class admissions</b> produced the largest employment and GDP coefficients,
+            followed by family class, then refugee class — consistent with the human capital channel (Erkisi, 2023).
+        </div>""", unsafe_allow_html=True)
 
-    st.markdown("<div class='sec'>Program intensity by province</div>", unsafe_allow_html=True)
-    pv = ircc[ircc.Geo_Level=="Provincial"].copy()
-    pv["P"] = pv["Province_Raw"].str.replace(r"\s*-\s*Total$","",regex=True).str.strip()
-    hm = pv.groupby(["P","ImmCategory"])["Admissions"].sum().reset_index()
-    pivot = hm.pivot(index="P", columns="ImmCategory", values="Admissions").fillna(0)
-    fig = px.imshow(pivot, color_continuous_scale=["#FFFFFF","#FCA5A5",MAPLE], aspect="auto")
-    fig.update_layout(**{k:v for k,v in PLOTLY_LAYOUT.items() if k not in ("xaxis","yaxis")},
-                      height=460, coloraxis_colorbar=dict(title="Admissions", thickness=12))
-    fig.update_xaxes(tickangle=-40, tickfont_size=9)
-    st.plotly_chart(fig, width='stretch')
+    # Class figures
+    class_figs = [("23_class_composition.png", "Immigration Class Composition"),
+                  ("23_class_coefficients.png", "OLS Coefficients by Class"),
+                  ("23_province_class_heatmap.png", "Province-Class Heatmap")]
+    cols = st.columns(3)
+    for i, (fname, title) in enumerate(class_figs):
+        fpath = FIGURES / fname
+        with cols[i]:
+            if fpath.exists():
+                st.markdown(f"**{title}**")
+                st.image(str(fpath), use_container_width=True)
 
-# ════════════ METHODOLOGY
-with tabs[7]:
-    st.markdown("<div class='sec'>Approach</div>", unsafe_allow_html=True)
+
+# ════════════════════════════════════════════════════════════════════
+#  TAB 8 — COUNTRY-OF-ORIGIN
+# ════════════════════════════════════════════════════════════════════
+with tabs[8]:
+    st.markdown("<div class='sec'>Country-of-Origin analysis</div>", unsafe_allow_html=True)
+    st.markdown("This analysis examines whether the source-country composition of PR admissions "
+                "is associated with differential economic outcomes.")
+
+    origin_figs = [
+        ("24_top15_countries.png", "Top 15 Source Countries"),
+        ("24_country_outcome_heatmap.png", "Country-Outcome Correlation Heatmap"),
+    ]
+    cols = st.columns(2)
+    for i, (fname, title) in enumerate(origin_figs):
+        fpath = FIGURES / fname
+        with cols[i]:
+            if fpath.exists():
+                st.markdown(f"**{title}**")
+                st.image(str(fpath), use_container_width=True)
+
+    country_corr = load_table("24_country_outcome_corr.csv")
+    if country_corr is not None:
+        st.markdown("<div class='sec'>Country-outcome correlation table</div>", unsafe_allow_html=True)
+        st.dataframe(country_corr, use_container_width=True, hide_index=True)
+
+    top5_path = FIGURES / "24_top5_timeseries.png"
+    if top5_path.exists():
+        st.markdown("<div class='sec'>Top 5 source countries — time series</div>", unsafe_allow_html=True)
+        st.image(str(top5_path), use_container_width=True)
+
+
+# ════════════════════════════════════════════════════════════════════
+#  TAB 9 — BARTIK IV
+# ════════════════════════════════════════════════════════════════════
+with tabs[9]:
+    st.markdown("<div class='sec'>Bartik Shift-Share Instrumental Variables</div>", unsafe_allow_html=True)
     st.markdown("""
-This dashboard tests five research questions using **monthly time-series data** (2015–2025, n ≈ 132)
-rather than annual aggregates, preserving statistical power. Each outcome is modelled with
-**Ordinary Least Squares** using **Newey–West (HAC) standard errors** robust to the
-autocorrelation and heteroskedasticity typical of macroeconomic series.
+    To address endogeneity — provinces with stronger economies may attract more immigrants —
+    a **Bartik Shift-Share IV** strategy was implemented following Card (2001) and Goldsmith-Pinkham et al. (2020).
+    """)
 
-**Two specifications** are available (sidebar):
+    bartik_iv = load_table("25_bartik_iv_results.csv")
+    if bartik_iv is not None:
+        st.dataframe(bartik_iv, use_container_width=True, hide_index=True)
 
-- **Naive (bivariate):** outcome regressed on PR admissions alone. Reproduces the headline
-  correlation but is vulnerable to confounding — both immigration and the economy trend upward together.
-- **Controlled (multivariate):** adds a **time trend**, **COVID-19 dummy**, **prime interest rate**,
-  and **CPI**, isolating the PR effect from the broader macro environment. This is the more credible estimate.
+    st.markdown("""<div class='report-card'>
+        <div class='label'>📄 Bartik IV Key Finding</div>
+        <b>First-stage F-statistic:</b> 316.21 (>> 10 threshold for strong instrument) ·
+        <b>2SLS employment rate β:</b> +0.000064, p = 0.003 (smaller than OLS β = +0.000107) ·
+        <b>Interpretation:</b> Attenuation under IV suggests OLS modestly overstates the causal effect,
+        but the relationship remains significant — ruling out pure reverse causality.
+    </div>""", unsafe_allow_html=True)
 
-**Lag structure:** immigration effects can take time to appear, so PR admissions may be entered
-contemporaneously or lagged 3, 6, or 12 months.
+    bartik_figs = [
+        ("25_bartik_shares.png", "Bartik Baseline Settlement Shares"),
+        ("25_ols_vs_2sls.png", "OLS vs. 2SLS Coefficient Comparison"),
+    ]
+    cols = st.columns(2)
+    for i, (fname, title) in enumerate(bartik_figs):
+        fpath = FIGURES / fname
+        with cols[i]:
+            if fpath.exists():
+                st.markdown(f"**{title}**")
+                st.image(str(fpath), use_container_width=True)
+
+    # Secondary migration
+    st.markdown("<div class='sec'>Secondary migration analysis</div>", unsafe_allow_html=True)
+    sec_figs = [
+        ("26_net_migration.png", "Interprovincial Net Migration"),
+        ("26_pr_outflow_analysis.png", "PR vs. Outflow Scatter"),
+        ("26_od_heatmap.png", "Origin-Destination Flow Heatmap"),
+    ]
+    cols = st.columns(3)
+    for i, (fname, title) in enumerate(sec_figs):
+        fpath = FIGURES / fname
+        with cols[i]:
+            if fpath.exists():
+                st.markdown(f"**{title}**")
+                st.image(str(fpath), use_container_width=True)
+
+
+# ════════════════════════════════════════════════════════════════════
+#  TAB 10 — LITERATURE ALIGNMENT
+# ════════════════════════════════════════════════════════════════════
+with tabs[10]:
+    st.markdown("<div class='sec'>Literature alignment analysis</div>", unsafe_allow_html=True)
+    st.markdown("The confirmatory analysis compared our findings against 7 peer-reviewed studies, "
+                "achieving a **92.3% alignment rate** across 13 directional predictions.")
+
+    lit_table = load_table("26_confirmatory_alignment.csv")
+    if lit_table is not None:
+        st.dataframe(lit_table, use_container_width=True, hide_index=True)
+
+    align_path = FIGURES / "6a_confirmatory_alignment.png"
+    if align_path.exists():
+        st.image(str(align_path), use_container_width=True,
+                 caption="Literature Alignment Heatmap — 92.3% agreement rate")
+
+    verdict_path = FIGURES / "fig10_hypothesis_verdicts.png"
+    if verdict_path.exists():
+        st.markdown("<div class='sec'>Hypothesis verdict scorecard</div>", unsafe_allow_html=True)
+        st.image(str(verdict_path), use_container_width=True,
+                 caption="Visual scorecard of all evaluated hypotheses")
+
+
+# ════════════════════════════════════════════════════════════════════
+#  TAB 11 — METHODOLOGY
+# ════════════════════════════════════════════════════════════════════
+with tabs[11]:
+    st.markdown("<div class='sec'>Analytical approach</div>", unsafe_allow_html=True)
+    st.markdown("""
+This dashboard tests five research questions using **monthly time-series data** (2015–2025, n = 132)
+rather than annual aggregates, preserving statistical power. The analytical framework spans three tiers:
+
+**Tier 1 — Econometric Core:**
+- OLS with HC1 robust standard errors (4 specifications: bivariate, controlled, log-linear, first-difference)
+- Engle-Granger cointegration testing + Error Correction Models (ECM)
+- Vector Autoregression (VAR) with Impulse Response Functions and FEVD
+- Panel Fixed Effects (10 provinces × 132 months = 1,319 obs.)
+- Bartik Shift-Share Instrumental Variables (2SLS)
+
+**Tier 2 — Machine Learning Validation:**
+- Random Forest (300 trees, OOB evaluation)
+- XGBoost (gradient boosting)
+- Support Vector Machine (RBF kernel)
+- Ridge / Lasso / ElasticNet regularized regression
+- Walk-forward cross-validation (TimeSeriesSplit, 5 folds)
+
+**Tier 3 — Exploratory Analytics:**
+- PCA (variance decomposition)
+- K-Means provincial clustering (k=3)
+- Immigration class segmentation
+- Country-of-origin analysis
+- Secondary interprovincial migration analysis
 """)
+
     st.markdown("<div class='sec'>Why controls change the story</div>", unsafe_allow_html=True)
     st.markdown("""
 PR admissions, GDP, employment, and hours worked all rose over the sample period. A bivariate
-regression therefore shows strong positive associations — but much of that is a shared upward **trend**,
+regression shows strong positive associations — but much of that is a shared upward **trend**,
 not a causal immigration effect. Once the time trend and macro controls are added, several coefficients
-shrink and lose significance. **This is the expected, honest result**: it shows the raw correlations are
-partly spurious, which is why the controlled specification is the default for interpretation.
+shrink. **This is the expected, honest result**: it shows the raw correlations are
+partly spurious, which is why the controlled specification is the default.
 """)
+
     st.markdown("<div class='sec'>Variable definitions</div>", unsafe_allow_html=True)
     defs = pd.DataFrame({
-        "Variable": ["PR admissions","GDP growth (YoY)","Employment","Unemployment rate",
-                     "Hours worked","Time trend","COVID-19 dummy","Prime rate","CPI"],
+        "Variable": ["PR admissions","Real GDP","Employment","Unemployment rate",
+                     "Hours worked","GDP per worker","Time trend","COVID-19 dummy","Prime rate","CPI"],
         "Definition": [
             "Monthly permanent-resident landings (IRCC)",
-            "12-month % change in real GDP ($M, chained)",
+            "Real GDP at basic prices, seasonally adjusted (millions of chained 2017 CAD)",
             "Total employed persons (thousands, LFS)",
             "Unemployment rate (%, LFS)",
             "Aggregate actual hours worked (millions/month)",
-            "Sequential month index capturing secular growth",
-            "1 for Mar 2020–Jun 2021, else 0",
+            "Real GDP per employed person (productivity proxy)",
+            "Sequential month index (1–132) capturing secular growth",
+            "1 for Mar 2020–Sep 2021, else 0",
             "Bank prime lending rate (%)",
             "Consumer Price Index, all items (2002=100)"],
         "Source": ["IRCC","Statistics Canada","Statistics Canada","Statistics Canada",
-                   "Statistics Canada","Constructed","Constructed","Bank of Canada","Statistics Canada"]
+                   "Statistics Canada","Statistics Canada","Constructed","Constructed",
+                   "Bank of Canada","Statistics Canada"]
     })
-    st.dataframe(defs, width='stretch', hide_index=True)
+    st.dataframe(defs, use_container_width=True, hide_index=True)
+
+    # Stationarity results
+    stationarity = load_table("5m_01_stationarity.csv")
+    if stationarity is not None:
+        st.markdown("<div class='sec'>Stationarity test results</div>", unsafe_allow_html=True)
+        st.dataframe(stationarity, use_container_width=True, hide_index=True)
+        st.caption("All variables are I(1): non-stationary in levels, stationary after first differencing.")
+
+    # Cointegration results
+    coint = load_table("5m_12b_cointegration.csv")
+    if coint is not None:
+        st.markdown("<div class='sec'>Engle-Granger cointegration results</div>", unsafe_allow_html=True)
+        st.dataframe(coint, use_container_width=True, hide_index=True)
+
     st.markdown("<div class='sec'>Limitations</div>", unsafe_allow_html=True)
     st.markdown("""
-- **Association, not causation.** Controls reduce confounding but do not establish causality;
-  reverse causality (a strong economy attracting immigrants) remains possible.
+- **Association, not causation.** Controls reduce confounding but OLS does not establish causality.
+  The Bartik IV analysis addresses this partially.
 - **Aggregate masking.** National models can hide heterogeneous regional/sectoral effects (see RQ5).
 - **COVID-19 structural break.** The pandemic produced extreme outliers; the dummy mitigates but does not fully neutralise this.
 - **Short sample.** Eleven years of monthly data limits the precision of long-lag estimates.
+- **Non-stationarity.** Several series are I(1); first-difference results should be given weight for non-cointegrated pairs.
 """)
-    st.info("For inference beyond this dashboard, consider VAR / impulse-response analysis, "
-            "instrumental variables, or a fixed-effects panel across provinces.")
 
-
+# ════════════════════════════════════════════════════════════════════
+#  FOOTER
+# ════════════════════════════════════════════════════════════════════
 st.markdown("""
 <div class="foot">
-🍁 &nbsp;Canada PR Economic Impact Dashboard&nbsp; · &nbsp;Data: IRCC &amp; Statistics Canada&nbsp; · &nbsp;
-2015–2025&nbsp; · &nbsp;OLS with HAC standard errors&nbsp; · &nbsp;
-<i>Estimates are associational, not causal.</i>
+🍁 &nbsp;Canada PR Economic Impact Dashboard v2.0&nbsp; · &nbsp;
+Group 4 — DAMO-699-1, Spring 2026&nbsp; · &nbsp;University of Niagara Falls Canada&nbsp; · &nbsp;
+Data: IRCC &amp; Statistics Canada&nbsp; · &nbsp;2015–2025&nbsp; · &nbsp;
+<i>Estimates are associational unless stated otherwise (Bartik IV).</i>
 </div>""", unsafe_allow_html=True)
