@@ -65,7 +65,7 @@ PLOTLY_LAYOUT = dict(
     yaxis=dict(showgrid=True, gridcolor=LINE, zeroline=False,
                title_font=dict(size=11, color=MUTED)),
     legend=dict(font=dict(size=11), bgcolor="rgba(0,0,0,0)"),
-    title=dict(font=dict(size=14.5, color=INK, family=FONT)),
+    title_font=dict(size=14.5, color=INK, family=FONT),
     hoverlabel=dict(font_size=12, font_family=FONT, bgcolor=INK),
 )
 
